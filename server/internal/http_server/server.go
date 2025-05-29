@@ -1,0 +1,64 @@
+package server
+
+import (
+	"errors"
+	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
+	"github.com/nguyen/allycat/internal/http_server/handlers"
+	"github.com/nguyen/allycat/internal/http_server/routes"
+)
+
+type Server struct {
+	initialized bool
+	mux         *chi.Mux
+}
+
+func NewServer() *Server {
+	mux := chi.NewRouter()
+
+	// Basic CORS
+	// for more ideas, see: https://developer.github.com/v3/#cross-origin-resource-sharing
+	mux.Use(cors.Handler(cors.Options{
+		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
+		AllowedOrigins: []string{"http://localhost:3000"},
+		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: false,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	}))
+
+	mux.Use(middleware.Logger)
+
+	return &Server{
+		mux: mux,
+	}
+}
+
+func (s *Server) RegisterRoutes(hs handlers.Handlers) {
+	routes.InitializePlacesRoutes(s.mux, hs)
+
+	s.initialized = true
+}
+
+func (s *Server) Start(addr string) error {
+	if !s.initialized {
+		return errors.New("server routes not initialized, call RegisterRoutes first")
+	}
+
+	r := chi.NewRouter()
+
+	// healthcheck
+	r.Get("/status", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("ok"))
+	})
+
+	r.Mount("/api", s.mux)
+
+	server := &http.Server{Addr: addr, Handler: r}
+	return server.ListenAndServe()
+}
