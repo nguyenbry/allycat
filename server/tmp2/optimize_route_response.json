@@ -1,0 +1,1801 @@
+{
+  "routes": [
+    {
+      "legs": [
+        {
+          "distanceMeters": 3496,
+          "duration": "619s",
+          "staticDuration": "619s",
+          "polyline": {
+            "encodedPolyline": "uazrFny{iM[INaCoIeArA{StAySb@_IkFs@__@{E_KsAcAQUEa@EmGhJ[Rq@Ro@N}@RkAh@{@l@m@ZcFvDwB`B}@j@_A`A_@j@a@|@o@rBQtAIXYl@}ArBaAhBaAvBcAdDk@bCWrBG`ABXm@lJ"
+          },
+          "startLocation": {
+            "latLng": {
+              "latitude": 39.9517948,
+              "longitude": -75.18631529999999
+            }
+          },
+          "endLocation": {
+            "latLng": {
+              "latitude": 39.9698139,
+              "longitude": -75.1877748
+            }
+          },
+          "steps": [
+            {
+              "distanceMeters": 15,
+              "staticDuration": "3s",
+              "polyline": {
+                "encodedPolyline": "uazrFny{iM[I"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9517948,
+                  "longitude": -75.18631529999999
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9519258,
+                  "longitude": -75.186274000000012
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "DEPART",
+                "instructions": "Head north on Jones Way"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "49 ft"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 56,
+              "staticDuration": "21s",
+              "polyline": {
+                "encodedPolyline": "qbzrFdy{iMNaC"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9519258,
+                  "longitude": -75.186274000000012
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.951848399999996,
+                  "longitude": -75.1856214
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Turn right onto Jones Way/Walnut St"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "184 ft"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 189,
+              "staticDuration": "49s",
+              "polyline": {
+                "encodedPolyline": "abzrFbu{iMoIeA"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.951848399999996,
+                  "longitude": -75.1856214
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9535316,
+                  "longitude": -75.185273999999993
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Turn left onto S 31st St/31st Lower Level St"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.1 mi"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 715,
+              "staticDuration": "143s",
+              "polyline": {
+                "encodedPolyline": "qlzrF|r{iMrA{StAySb@_I"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9535316,
+                  "longitude": -75.185273999999993
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9524956,
+                  "longitude": -75.1769982
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Turn right onto Chestnut St"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.4 mi"
+                },
+                "staticDuration": {
+                  "text": "2 mins"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 978,
+              "staticDuration": "228s",
+              "polyline": {
+                "encodedPolyline": "cfzrFf_ziMkFs@__@{E_KsAcAQUE"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9524956,
+                  "longitude": -75.1769982
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9611695,
+                  "longitude": -75.1751037
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Turn left onto S 22nd St"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.6 mi"
+                },
+                "staticDuration": {
+                  "text": "4 mins"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 308,
+              "staticDuration": "43s",
+              "polyline": {
+                "encodedPolyline": "i|{rFjsyiMa@EmGhJ[Rq@Ro@N"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9611695,
+                  "longitude": -75.1751037
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.963316000000006,
+                  "longitude": -75.1771571
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Turn left onto Benjamin Franklin Pkwy"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.2 mi"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 149,
+              "staticDuration": "19s",
+              "polyline": {
+                "encodedPolyline": "wi|rFf`ziM}@RkAh@{@l@m@Z"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.963316000000006,
+                  "longitude": -75.1771571
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.964543299999995,
+                  "longitude": -75.1778444
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "STRAIGHT",
+                "instructions": "Continue straight onto Ben Franklin Pkwy/Eakins Ovl"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "489 ft"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 1086,
+              "staticDuration": "113s",
+              "polyline": {
+                "encodedPolyline": "kq|rFndziMcFvDwB`B}@j@_A`A_@j@a@|@o@rBQtAIXYl@}ArBaAhBaAvBcAdDk@bCWrBG`ABXm@lJ"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.964543299999995,
+                  "longitude": -75.1778444
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9698139,
+                  "longitude": -75.1877748
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "STRAIGHT",
+                "instructions": "Continue straight onto John B Kelly Dr/Kelly Dr\nContinue to follow Kelly Dr\nDestination will be on the left"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.7 mi"
+                },
+                "staticDuration": {
+                  "text": "2 mins"
+                }
+              },
+              "travelMode": "DRIVE"
+            }
+          ],
+          "localizedValues": {
+            "distance": {
+              "text": "2.2 mi"
+            },
+            "duration": {
+              "text": "10 mins"
+            },
+            "staticDuration": {
+              "text": "10 mins"
+            }
+          }
+        },
+        {
+          "distanceMeters": 3701,
+          "duration": "280s",
+          "staticDuration": "280s",
+          "polyline": {
+            "encodedPolyline": "ir}rFpb|iMc@~FMv@]x@i@n@q@^k@JaB@_B[u@CeAPgEzAeG`DkDbCsDjDqBzByCnCm@t@sM~Se@lAe@lB{@pEY~@gApB_AxAwEnG]X{@z@o@^w@Ts@Fs@Go@[mAaAqAwAw@gA_BqDy@qAwBaCaEgDiKwLw@k@aCsA{@o@_@g@o@oAiDoHMU_A|@c@q@Og@mAcBGQq@y@]UIN@V"
+          },
+          "startLocation": {
+            "latLng": {
+              "latitude": 39.9698139,
+              "longitude": -75.1877748
+            }
+          },
+          "endLocation": {
+            "latLng": {
+              "latitude": 39.9941494,
+              "longitude": -75.1928655
+            }
+          },
+          "steps": [
+            {
+              "distanceMeters": 3463,
+              "staticDuration": "201s",
+              "polyline": {
+                "encodedPolyline": "ir}rFpb|iMc@~FMv@]x@i@n@q@^k@JaB@_B[u@CeAPgEzAeG`DkDbCsDjDqBzByCnCm@t@sM~Se@lAe@lB{@pEY~@gApB_AxAwEnG]X{@z@o@^w@Ts@Fs@Go@[mAaAqAwAw@gA_BqDy@qAwBaCaEgDiKwLw@k@aCsA{@o@_@g@o@oAiDoHMU"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9698139,
+                  "longitude": -75.1877748
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9927,
+                  "longitude": -75.19380009999999
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "DEPART",
+                "instructions": "Head west on Kelly Dr toward Lemon Hill Dr"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "2.2 mi"
+                },
+                "staticDuration": {
+                  "text": "3 mins"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 44,
+              "staticDuration": "37s",
+              "polyline": {
+                "encodedPolyline": "kabsFfh}iM_A|@"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9927,
+                  "longitude": -75.19380009999999
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.993015299999996,
+                  "longitude": -75.194106699999992
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Turn left\nTurn may not be allowed at certain times or days"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "144 ft"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 175,
+              "staticDuration": "31s",
+              "polyline": {
+                "encodedPolyline": "kcbsFdj}iMc@q@Og@mAcBGQq@y@]U"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.993015299999996,
+                  "longitude": -75.194106699999992
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9941105,
+                  "longitude": -75.1926654
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Turn right"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.1 mi"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 19,
+              "staticDuration": "11s",
+              "polyline": {
+                "encodedPolyline": "ejbsFda}iMIN@V"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9941105,
+                  "longitude": -75.1926654
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9941494,
+                  "longitude": -75.1928655
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Turn left\nDestination will be on the right"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "62 ft"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            }
+          ],
+          "localizedValues": {
+            "distance": {
+              "text": "2.3 mi"
+            },
+            "duration": {
+              "text": "5 mins"
+            },
+            "staticDuration": {
+              "text": "5 mins"
+            }
+          }
+        },
+        {
+          "distanceMeters": 2507,
+          "duration": "377s",
+          "staticDuration": "377s",
+          "polyline": {
+            "encodedPolyline": "mjbsFlb}iMAWHOj@`@d@r@DJpAhBJ`@b@p@~@}@e@q@qC}Cm@_@}DmAu@c@sB}ARCb@PhB~@fBb@dAP`@GRGXST]Nm@JyA@{AHo@d@_B^s@p@i@d@S~@O^Cc@aG?iAJw@Rq@FkALENe@ReDLcCzFg|@|C`@"
+          },
+          "startLocation": {
+            "latLng": {
+              "latitude": 39.9941494,
+              "longitude": -75.1928655
+            }
+          },
+          "endLocation": {
+            "latLng": {
+              "latitude": 39.9895972,
+              "longitude": -75.1754455
+            }
+          },
+          "steps": [
+            {
+              "distanceMeters": 19,
+              "staticDuration": "2s",
+              "polyline": {
+                "encodedPolyline": "mjbsFlb}iMAWHO"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9941494,
+                  "longitude": -75.1928655
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9941105,
+                  "longitude": -75.1926654
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "DEPART",
+                "instructions": "Head east"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "62 ft"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 175,
+              "staticDuration": "28s",
+              "polyline": {
+                "encodedPolyline": "ejbsFda}iMj@`@d@r@DJpAhBJ`@b@p@"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9941105,
+                  "longitude": -75.1926654
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.993015299999996,
+                  "longitude": -75.194106699999992
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Turn right"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.1 mi"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 44,
+              "staticDuration": "17s",
+              "polyline": {
+                "encodedPolyline": "kcbsFdj}iM~@}@"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.993015299999996,
+                  "longitude": -75.194106699999992
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9927,
+                  "longitude": -75.19380009999999
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Turn left toward Kelly Dr"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "144 ft"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 385,
+              "staticDuration": "34s",
+              "polyline": {
+                "encodedPolyline": "kabsFfh}iMe@q@qC}Cm@_@}DmAu@c@sB}A"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9927,
+                  "longitude": -75.19380009999999
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.995653399999995,
+                  "longitude": -75.191565
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Turn left onto Kelly Dr"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.2 mi"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 569,
+              "staticDuration": "53s",
+              "polyline": {
+                "encodedPolyline": "ysbsFfz|iMRCb@PhB~@fBb@dAP`@GRGXST]Nm@JyA@{AHo@d@_B^s@p@i@d@S~@O^C"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.995653399999995,
+                  "longitude": -75.191565
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9919934,
+                  "longitude": -75.1893604
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_SHARP_RIGHT",
+                "instructions": "Sharp right onto Reservoir Dr/Strawberry Mansion Dr"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.4 mi"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 1226,
+              "staticDuration": "222s",
+              "polyline": {
+                "encodedPolyline": "}|asFnl|iMc@aG?iAJw@Rq@FkALENe@ReDLcCzFg|@"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9919934,
+                  "longitude": -75.1893604
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9903853,
+                  "longitude": -75.1752759
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Turn left onto W Dauphin Dr"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.8 mi"
+                },
+                "staticDuration": {
+                  "text": "4 mins"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 89,
+              "staticDuration": "21s",
+              "polyline": {
+                "encodedPolyline": "}rasFntyiM|C`@"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9903853,
+                  "longitude": -75.1752759
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9895972,
+                  "longitude": -75.1754455
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Turn right onto N 26th St"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "292 ft"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            }
+          ],
+          "localizedValues": {
+            "distance": {
+              "text": "1.6 mi"
+            },
+            "duration": {
+              "text": "6 mins"
+            },
+            "staticDuration": {
+              "text": "6 mins"
+            }
+          }
+        },
+        {
+          "distanceMeters": 5200,
+          "duration": "773s",
+          "staticDuration": "773s",
+          "polyline": {
+            "encodedPolyline": "_nasFpuyiMhC\\rG|Ox@xBhEpH`ObW_BjVh_@bFj@Rb@b@b@b@h@Zv@Nn@CjBi@dA]Z@p@UhAMd@J^XRf@Rd@_@|FBjAjAjT@\\bC[dB[j@ORSfGeBrZeJnDa@tB[`Z_D`Dzl@F`@Ed@gF~L"
+          },
+          "startLocation": {
+            "latLng": {
+              "latitude": 39.9895972,
+              "longitude": -75.1754455
+            }
+          },
+          "endLocation": {
+            "latLng": {
+              "latitude": 39.9625176,
+              "longitude": -75.2011942
+            }
+          },
+          "steps": [
+            {
+              "distanceMeters": 78,
+              "staticDuration": "12s",
+              "polyline": {
+                "encodedPolyline": "_nasFpuyiMhC\\"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9895972,
+                  "longitude": -75.1754455
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9889067,
+                  "longitude": -75.1755972
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "DEPART",
+                "instructions": "Head south on N 26th St toward W Sedgley Ave"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "256 ft"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 946,
+              "staticDuration": "186s",
+              "polyline": {
+                "encodedPolyline": "uiasFnvyiMrG|Ox@xBhEpH`ObW"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9889067,
+                  "longitude": -75.1755972
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.983657699999995,
+                  "longitude": -75.1843065
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Turn right onto W Sedgley Ave"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.6 mi"
+                },
+                "staticDuration": {
+                  "text": "3 mins"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 324,
+              "staticDuration": "50s",
+              "polyline": {
+                "encodedPolyline": "{h`sF|l{iM_BjV"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.983657699999995,
+                  "longitude": -75.1843065
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.984135099999996,
+                  "longitude": -75.1880534
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Turn right onto W Montgomery Ave"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.2 mi"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 1017,
+              "staticDuration": "117s",
+              "polyline": {
+                "encodedPolyline": "{k`sFhd|iMh_@bFj@Rb@b@b@b@h@Zv@Nn@CjBi@dA]Z@p@UhAMd@J^XRf@Rd@"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.984135099999996,
+                  "longitude": -75.1880534
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.975462199999996,
+                  "longitude": -75.1898956
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Turn left onto US-13 S/N 33rd St\nContinue to follow US-13 S"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.6 mi"
+                },
+                "staticDuration": {
+                  "text": "2 mins"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 437,
+              "staticDuration": "53s",
+              "polyline": {
+                "encodedPolyline": "su~rFzo|iM_@|FBjAjAjT"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.975462199999996,
+                  "longitude": -75.1898956
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9752218,
+                  "longitude": -75.194971299999992
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Turn right onto W Girard Ave"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.3 mi"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 1503,
+              "staticDuration": "194s",
+              "polyline": {
+                "encodedPolyline": "ct~rFpo}iM@\\bC[dB[j@ORSfGeBrZeJnDa@tB[`Z_D"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9752218,
+                  "longitude": -75.194971299999992
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9621844,
+                  "longitude": -75.1912498
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Turn left onto N 34th St/W Girard Ave\nContinue to follow N 34th St"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.9 mi"
+                },
+                "staticDuration": {
+                  "text": "3 mins"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 664,
+              "staticDuration": "111s",
+              "polyline": {
+                "encodedPolyline": "sb|rFhx|iM`Dzl@F`@Ed@"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9621844,
+                  "longitude": -75.1912498
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9613588,
+                  "longitude": -75.1989481
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Turn right onto Hamilton St"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.4 mi"
+                },
+                "staticDuration": {
+                  "text": "2 mins"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 231,
+              "staticDuration": "50s",
+              "polyline": {
+                "encodedPolyline": "o}{rFlh~iMgF~L"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9613588,
+                  "longitude": -75.1989481
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9625176,
+                  "longitude": -75.2011942
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_SLIGHT_RIGHT",
+                "instructions": "Slight right onto Lancaster Ave\nDestination will be on the right"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.1 mi"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            }
+          ],
+          "localizedValues": {
+            "distance": {
+              "text": "3.2 mi"
+            },
+            "duration": {
+              "text": "13 mins"
+            },
+            "staticDuration": {
+              "text": "13 mins"
+            }
+          }
+        },
+        {
+          "distanceMeters": 1562,
+          "duration": "435s",
+          "staticDuration": "435s",
+          "polyline": {
+            "encodedPolyline": "wd|rFlv~iMkApCDvAxP{@jLm@dD\\jk@fH"
+          },
+          "startLocation": {
+            "latLng": {
+              "latitude": 39.9625176,
+              "longitude": -75.2011942
+            }
+          },
+          "endLocation": {
+            "latLng": {
+              "latitude": 39.949948299999996,
+              "longitude": -75.2034621
+            }
+          },
+          "steps": [
+            {
+              "distanceMeters": 75,
+              "staticDuration": "19s",
+              "polyline": {
+                "encodedPolyline": "wd|rFlv~iMkApC"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9625176,
+                  "longitude": -75.2011942
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9628958,
+                  "longitude": -75.2019184
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "DEPART",
+                "instructions": "Head northwest on Lancaster Ave toward Haverford Ave"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "246 ft"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 38,
+              "staticDuration": "14s",
+              "polyline": {
+                "encodedPolyline": "cg|rF~z~iMDvA"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9628958,
+                  "longitude": -75.2019184
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9628659,
+                  "longitude": -75.2023593
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Turn left at the 1st cross street onto Haverford Ave/SR 3018/State Rte 3018"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "125 ft"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 1449,
+              "staticDuration": "402s",
+              "polyline": {
+                "encodedPolyline": "}f|rFv}~iMxP{@jLm@dD\\jk@fH"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9628659,
+                  "longitude": -75.2023593
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.949948299999996,
+                  "longitude": -75.2034621
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Turn left at the 1st cross street onto N 40th St\nPass by McDonald's (on the left in 0.6 mi)"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.9 mi"
+                },
+                "staticDuration": {
+                  "text": "7 mins"
+                }
+              },
+              "travelMode": "DRIVE"
+            }
+          ],
+          "localizedValues": {
+            "distance": {
+              "text": "1.0 mi"
+            },
+            "duration": {
+              "text": "7 mins"
+            },
+            "staticDuration": {
+              "text": "7 mins"
+            }
+          }
+        },
+        {
+          "distanceMeters": 1535,
+          "duration": "291s",
+          "staticDuration": "291s",
+          "polyline": {
+            "encodedPolyline": "evyrFrd_jM^fXLlCvAzPVdENjDjCrf@f@tK"
+          },
+          "startLocation": {
+            "latLng": {
+              "latitude": 39.949948299999996,
+              "longitude": -75.2034621
+            }
+          },
+          "endLocation": {
+            "latLng": {
+              "latitude": 39.9481779,
+              "longitude": -75.2212924
+            }
+          },
+          "steps": [
+            {
+              "distanceMeters": 1535,
+              "staticDuration": "291s",
+              "polyline": {
+                "encodedPolyline": "evyrFrd_jM^fXLlCvAzPVdENjDjCrf@f@tK"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.949948299999996,
+                  "longitude": -75.2034621
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9481779,
+                  "longitude": -75.2212924
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "DEPART",
+                "instructions": "Head west on Baltimore Ave toward Woodland Terrace\nDestination will be on the left"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "1.0 mi"
+                },
+                "staticDuration": {
+                  "text": "5 mins"
+                }
+              },
+              "travelMode": "DRIVE"
+            }
+          ],
+          "localizedValues": {
+            "distance": {
+              "text": "1.0 mi"
+            },
+            "duration": {
+              "text": "5 mins"
+            },
+            "staticDuration": {
+              "text": "5 mins"
+            }
+          }
+        },
+        {
+          "distanceMeters": 4265,
+          "duration": "671s",
+          "staticDuration": "671s",
+          "polyline": {
+            "encodedPolyline": "ckyrF`tbjM?Gz@aAxO}R^k@dBsBzUaZWYo@a@GePF[EqJ@iCPgFXiE^yDj@{DjAaHlAyJd@yDfAiIf@eEH}A?k^EqAS{Ak@iBaEaIFSLsBCWDeA?E\\aGHuBF_ADIdB}XgJqA_BQ"
+          },
+          "startLocation": {
+            "latLng": {
+              "latitude": 39.9481779,
+              "longitude": -75.2212924
+            }
+          },
+          "endLocation": {
+            "latLng": {
+              "latitude": 39.941772199999996,
+              "longitude": -75.179337699999991
+            }
+          },
+          "steps": [
+            {
+              "distanceMeters": 4,
+              "staticDuration": "1s",
+              "polyline": {
+                "encodedPolyline": "ckyrF`tbjM?G"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9481779,
+                  "longitude": -75.2212924
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.948180799999996,
+                  "longitude": -75.2212462
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "DEPART",
+                "instructions": "Head east on Baltimore Ave toward S 49th St"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "13 ft"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 1098,
+              "staticDuration": "199s",
+              "polyline": {
+                "encodedPolyline": "ckyrFxsbjMz@aAxO}R^k@dBsBzUaZ"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.948180799999996,
+                  "longitude": -75.2212462
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9408631,
+                  "longitude": -75.2126014
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Turn right onto S 49th St"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.7 mi"
+                },
+                "staticDuration": {
+                  "text": "3 mins"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 48,
+              "staticDuration": "12s",
+              "polyline": {
+                "encodedPolyline": "k}wrFv}`jMWYo@a@"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9408631,
+                  "longitude": -75.2126014
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.941224,
+                  "longitude": -75.2123012
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Turn left onto Woodland Ave"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "157 ft"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 2200,
+              "staticDuration": "298s",
+              "polyline": {
+                "encodedPolyline": "s_xrFz{`jMGePF[EqJ@iCPgFXiE^yDj@{DjAaHlAyJd@yDfAiIf@eEH}A?k^EqAS{Ak@iBaEaI"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.941224,
+                  "longitude": -75.2123012
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9403923,
+                  "longitude": -75.1874164
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Turn right onto Grays Ferry Ave"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "1.4 mi"
+                },
+                "staticDuration": {
+                  "text": "5 mins"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 60,
+              "staticDuration": "8s",
+              "polyline": {
+                "encodedPolyline": "mzwrFj`|iMFSLsB"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9403923,
+                  "longitude": -75.1874164
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9402818,
+                  "longitude": -75.1867364
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Turn right onto Washington Ave"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "197 ft"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 597,
+              "staticDuration": "89s",
+              "polyline": {
+                "encodedPolyline": "wywrFb|{iMCWDeA?E\\aGHuBF_ADIdB}X"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9402818,
+                  "longitude": -75.1867364
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9394859,
+                  "longitude": -75.1798367
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_SLIGHT_LEFT",
+                "instructions": "Slight left to stay on Washington Ave"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.4 mi"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 258,
+              "staticDuration": "64s",
+              "polyline": {
+                "encodedPolyline": "ytwrF~pziMgJqA_BQ"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9394859,
+                  "longitude": -75.1798367
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.941772199999996,
+                  "longitude": -75.179337699999991
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Turn left onto S 22nd St\nDestination will be on the left"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.2 mi"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            }
+          ],
+          "localizedValues": {
+            "distance": {
+              "text": "2.7 mi"
+            },
+            "duration": {
+              "text": "11 mins"
+            },
+            "staticDuration": {
+              "text": "11 mins"
+            }
+          }
+        },
+        {
+          "distanceMeters": 2601,
+          "duration": "636s",
+          "staticDuration": "636s",
+          "polyline": {
+            "encodedPolyline": "acxrFzmziMgKuAg@E_BWrFg|@mDe@_OqB_YuDuEo@{@KwF{@sAM[pEa@fHM~A"
+          },
+          "startLocation": {
+            "latLng": {
+              "latitude": 39.941772199999996,
+              "longitude": -75.179337699999991
+            }
+          },
+          "endLocation": {
+            "latLng": {
+              "latitude": 39.954186899999996,
+              "longitude": -75.1696279
+            }
+          },
+          "steps": [
+            {
+              "distanceMeters": 297,
+              "staticDuration": "79s",
+              "polyline": {
+                "encodedPolyline": "acxrFzmziMgKuAg@E_BW"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.941772199999996,
+                  "longitude": -75.179337699999991
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9444089,
+                  "longitude": -75.17876
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "DEPART",
+                "instructions": "Head north on S 22nd St toward Norfolk St"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.2 mi"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 846,
+              "staticDuration": "164s",
+              "polyline": {
+                "encodedPolyline": "qsxrFfjziMrFg|@"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9444089,
+                  "longitude": -75.17876
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9431902,
+                  "longitude": -75.1689627
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Turn right onto Bainbridge St"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.5 mi"
+                },
+                "staticDuration": {
+                  "text": "3 mins"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 1198,
+              "staticDuration": "342s",
+              "polyline": {
+                "encodedPolyline": "}kxrF~lxiMmDe@_OqB_YuDuEo@{@KwF{@sAM"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9431902,
+                  "longitude": -75.1689627
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.953808599999995,
+                  "longitude": -75.1666187
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Turn left onto S 16th St"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.7 mi"
+                },
+                "staticDuration": {
+                  "text": "6 mins"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 260,
+              "staticDuration": "51s",
+              "polyline": {
+                "encodedPolyline": "inzrFj~wiM[pEa@fHM~A"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.953808599999995,
+                  "longitude": -75.1666187
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.954186899999996,
+                  "longitude": -75.1696279
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Turn left after Bank of America Financial Center (on the left)\nDestination will be on the left"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.2 mi"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            }
+          ],
+          "localizedValues": {
+            "distance": {
+              "text": "1.6 mi"
+            },
+            "duration": {
+              "text": "11 mins"
+            },
+            "staticDuration": {
+              "text": "11 mins"
+            }
+          }
+        },
+        {
+          "distanceMeters": 1507,
+          "duration": "267s",
+          "staticDuration": "267s",
+          "polyline": {
+            "encodedPolyline": "upzrFdqxiMi@|IG\\YrECpAEAaEln@KJ_@H}Bi@]A[JKPOtAi@vG?PBZJNRJvJpA"
+          },
+          "startLocation": {
+            "latLng": {
+              "latitude": 39.954186899999996,
+              "longitude": -75.1696279
+            }
+          },
+          "endLocation": {
+            "latLng": {
+              "latitude": 39.955017999999995,
+              "longitude": -75.1832324
+            }
+          },
+          "steps": [
+            {
+              "distanceMeters": 977,
+              "staticDuration": "133s",
+              "polyline": {
+                "encodedPolyline": "upzrFdqxiMi@|IG\\YrECpAEAaEln@KJ_@H"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.954186899999996,
+                  "longitude": -75.1696279
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.955808,
+                  "longitude": -75.180693699999992
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "DEPART",
+                "instructions": "Head west on John F Kennedy Blvd toward N 18th St"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.6 mi"
+                },
+                "staticDuration": {
+                  "text": "2 mins"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 73,
+              "staticDuration": "14s",
+              "polyline": {
+                "encodedPolyline": "yzzrFhvziM}Bi@"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.955808,
+                  "longitude": -75.180693699999992
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.9564442,
+                  "longitude": -75.18048189999999
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "MERGE",
+                "instructions": "Merge onto Schuylkill Ave"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "240 ft"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 211,
+              "staticDuration": "49s",
+              "polyline": {
+                "encodedPolyline": "w~zrF~tziM]A[JKPOtAi@vG?P"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.9564442,
+                  "longitude": -75.18048189999999
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.957080000000005,
+                  "longitude": -75.182542400000017
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "NAME_CHANGE",
+                "instructions": "Continue onto Arch St"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.1 mi"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            },
+            {
+              "distanceMeters": 246,
+              "staticDuration": "71s",
+              "polyline": {
+                "encodedPolyline": "wb{rFza{iMBZJNRJvJpA"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 39.957080000000005,
+                  "longitude": -75.182542400000017
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 39.955017999999995,
+                  "longitude": -75.1832324
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "NAME_CHANGE",
+                "instructions": "Arch St turns slightly left and becomes N 30th St\nDestination will be on the right"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "0.2 mi"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              },
+              "travelMode": "DRIVE"
+            }
+          ],
+          "localizedValues": {
+            "distance": {
+              "text": "0.9 mi"
+            },
+            "duration": {
+              "text": "4 mins"
+            },
+            "staticDuration": {
+              "text": "4 mins"
+            }
+          }
+        }
+      ],
+      "distanceMeters": 26374,
+      "duration": "4344s",
+      "staticDuration": "4344s",
+      "optimizedIntermediateWaypointIndex": [
+        5,
+        3,
+        4,
+        2,
+        1,
+        0,
+        6,
+        7
+      ],
+      "localizedValues": {
+        "distance": {
+          "text": "16.4 mi"
+        },
+        "duration": {
+          "text": "1 hour 12 mins"
+        },
+        "staticDuration": {
+          "text": "1 hour 12 mins"
+        }
+      }
+    }
+  ]
+}
