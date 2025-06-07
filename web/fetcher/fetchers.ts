@@ -17,7 +17,7 @@ const placeSchema = z.object({
   }),
 });
 
-const _testPlaces: {
+export const _testPlaces: {
   origin: placeSchema;
   stops: placeSchema[];
   destination: placeSchema;

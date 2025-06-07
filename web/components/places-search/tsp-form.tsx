@@ -28,6 +28,7 @@ import {
   type routeSchema,
   type routesPerDestinationSchema,
   type placeSchema,
+  _testPlaces,
 } from "@/fetcher/fetchers";
 import {
   atom,
@@ -50,6 +51,7 @@ import type { Expect, Equal } from "type-testing";
 import { Badge } from "../ui/badge";
 import { useStore as useZtore } from "zustand";
 import { passwordStore } from "@/stores/password-store";
+import * as R from "remeda";
 
 type OmitProps<
   TComponent extends
@@ -74,11 +76,13 @@ const routeAtom = atom<{
   stops: placeSchema[];
   destination: placeSchema | undefined;
   origin: placeSchema | undefined;
-}>({
-  stops: [],
-  destination: undefined,
-  origin: undefined,
-});
+}>(
+  _testPlaces ?? {
+    stops: [],
+    destination: undefined,
+    origin: undefined,
+  }
+);
 
 const stopsAtom = focusAtom(routeAtom, (o) => o.prop("stops"));
 const originAtom = focusAtom(routeAtom, (o) => o.prop("origin"));
@@ -103,8 +107,6 @@ function TSPFormInner() {
   const setDest = useSetAtom(destinationAtom);
 
   const outerStore = useStore();
-
-  console.log("route", useAtomValue(routeAtom));
 
   return (
     <div className="flex flex-col gap-4">
@@ -263,8 +265,8 @@ function RoutesForDestination({
 
   return (
     <div className="rounded-md border p-3 bg-background flex flex-col gap-2">
-      <div className="flex flex-col items-center">
-        <span className="tracking-tight text-sm">
+      <div className="flex flex-col items-start">
+        <span className="tracking-tight text-sm font-bold">
           End: {d.displayName.text}
         </span>
         <span className="tracking-tight text-xs text-muted-foreground">
@@ -272,7 +274,7 @@ function RoutesForDestination({
         </span>
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col divide-y-[1px] divide-border">
         {bike && (
           <RouteForVehicle
             destination={destination}
@@ -280,16 +282,32 @@ function RoutesForDestination({
             vehicle={Vehicle.Bike}
           />
         )}
-        {car && (
-          <RouteForVehicle
-            route={car}
-            vehicle={Vehicle.Car}
-            destination={destination}
-          />
-        )}
+        {iife(() => {
+          /**
+           * Only return car card if routes aren't the same
+           */
+          if (!car) return undefined;
+
+          const carRouteSameAsBikeRoute =
+            bike && R.isDeepEqual(bike.order, car.order);
+
+          if (carRouteSameAsBikeRoute) return undefined;
+
+          return (
+            <RouteForVehicle
+              route={car}
+              vehicle={Vehicle.Car}
+              destination={destination}
+            />
+          );
+        })}
       </div>
     </div>
   );
+}
+
+function iife<T>(fn: () => T): T {
+  return fn();
 }
 
 enum Vehicle {
@@ -321,7 +339,7 @@ function RouteForVehicle({
   const Icon = getIcon();
 
   return (
-    <div className="border border-border rounded-sm p-3 flex gap-2 items-center">
+    <div className="py-4 flex gap-2 items-center">
       <div className="px-2 shrink-0">
         <Icon className="text-muted-foreground size-7" />
       </div>
@@ -334,14 +352,14 @@ function RouteForVehicle({
           {route.order.map((placeId) => {
             return <A key={placeId} placeId={placeId} />;
           })}
-          <A placeId={destination} />
+          <A placeId={destination} isEnd />
         </div>
       </div>
     </div>
   );
 }
 
-function A({ placeId }: { placeId: string }) {
+function A({ placeId, isEnd }: { placeId: string; isEnd?: true }) {
   const route = useAtomValue(routeAtom);
 
   const found =
@@ -353,8 +371,15 @@ function A({ placeId }: { placeId: string }) {
   return (
     <div className="p-1 flex gap-1.5">
       <div className="flex flex-col">
-        <span className="text-xs break-all">{found.displayName.text}</span>
-        <span className="text-muted-foreground text-xs break-all">
+        <span className={cn("text-xs break-all", isEnd && "text-jade-11")}>
+          {found.displayName.text}
+        </span>
+        <span
+          className={cn(
+            "text-muted-foreground text-xs break-all",
+            isEnd && "text-jade-12"
+          )}
+        >
           {found.formattedAddress}
         </span>
       </div>
