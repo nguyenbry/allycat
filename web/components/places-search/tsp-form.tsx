@@ -52,6 +52,7 @@ import { Badge } from "../ui/badge";
 import { useStore as useZtore } from "zustand";
 import { passwordStore } from "@/stores/password-store";
 import * as R from "remeda";
+import { atomWithReset, RESET } from "jotai/utils";
 
 type OmitProps<
   TComponent extends
@@ -67,8 +68,8 @@ const queryAtomAtom = atom((get) => {
   get(openAtom);
 
   return {
-    inputAtom: atom(""),
-    selectedLocationFormAtom: atom<placeSchema | undefined>(undefined),
+    inputAtom: atomWithReset(""),
+    selectedLocationFormAtom: atomWithReset<placeSchema | undefined>(undefined),
   };
 });
 
@@ -440,6 +441,7 @@ function StopsArea() {
 
         <Provider>
           <LocationSelectResponsiveDrawerOrDialog
+            keepOpen
             locationBias={bias?.location}
             title="Add Location"
             description="Search for a location. Click save when you're done."
@@ -633,20 +635,33 @@ function LocationSelectResponsiveDrawerOrDialog({
   description,
   title,
   locationBias,
+  keepOpen,
 }: {
   onSubmit: (place: placeSchema) => void;
   title: string;
   description: string;
   locationBias: { longitude: number; latitude: number } | undefined;
+  keepOpen?: true;
 } & React.PropsWithChildren) {
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
   const [open, setOpen] = useAtom(openAtom);
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
   const { inputAtom, selectedLocationFormAtom } = useAtomValue(queryAtomAtom);
 
+  const setInput = useSetAtom(inputAtom);
+  const setSelectedLocation = useSetAtom(selectedLocationFormAtom);
+
   const onSubmitWrapped = (place: placeSchema) => {
     onSubmit(place);
-    setOpen(false);
+    if (keepOpen) {
+      setInput(RESET);
+      setSelectedLocation(RESET);
+      inputRef.current?.focus();
+    } else {
+      setOpen(false);
+    }
   };
 
   if (isDesktop) {
@@ -659,6 +674,7 @@ function LocationSelectResponsiveDrawerOrDialog({
             <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
           <DrawerOrDialogContent
+            ref={inputRef}
             locationBias={locationBias}
             onSubmit={onSubmitWrapped}
             inputAtom={inputAtom}
@@ -678,6 +694,7 @@ function LocationSelectResponsiveDrawerOrDialog({
           <DrawerDescription>{description}</DrawerDescription>
         </DrawerHeader>
         <DrawerOrDialogContent
+          ref={inputRef}
           locationBias={locationBias}
           onSubmit={onSubmitWrapped}
           className="px-4 pb-8"
@@ -695,12 +712,13 @@ function DrawerOrDialogContent({
   selectedLocationFormAtom,
   onSubmit,
   locationBias,
+  ref,
 }: PropsWithCn<{
   inputAtom: PrimitiveAtom<string>;
   selectedLocationFormAtom: PrimitiveAtom<placeSchema | undefined>;
   onSubmit: (place: placeSchema) => void;
   locationBias: { longitude: number; latitude: number } | undefined;
-}>) {
+}> & { ref?: React.Ref<HTMLInputElement> }) {
   const [value, setValue] = useAtom(inputAtom);
 
   const [selected, setSelected] = useAtom(selectedLocationFormAtom);
@@ -713,6 +731,7 @@ function DrawerOrDialogContent({
     <div className={cn("grid items-start gap-6", className)}>
       <div className="grid gap-3">
         <Input
+          ref={ref}
           type="text"
           placeholder="Search for a place"
           value={value}
