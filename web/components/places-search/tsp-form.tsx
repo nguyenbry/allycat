@@ -649,7 +649,7 @@ function LocationSelectResponsiveDrawerOrDialog({
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>{children}</DrawerTrigger>
-      <DrawerContent>
+      <DrawerContent className="h-[90dvh]">
         <DrawerHeader className="text-left">
           <DrawerTitle>{title}</DrawerTitle>
           <DrawerDescription>{description}</DrawerDescription>
