@@ -76,13 +76,11 @@ const routeAtom = atom<{
   stops: placeSchema[];
   destination: placeSchema | undefined;
   origin: placeSchema | undefined;
-}>(
-  _testPlaces ?? {
-    stops: [],
-    destination: undefined,
-    origin: undefined,
-  }
-);
+}>({
+  stops: [],
+  destination: undefined,
+  origin: undefined,
+});
 
 const stopsAtom = focusAtom(routeAtom, (o) => o.prop("stops"));
 const originAtom = focusAtom(routeAtom, (o) => o.prop("origin"));
