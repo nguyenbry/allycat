@@ -1,4 +1,5 @@
 import { env } from "@/env";
+import { passwordStore } from "@/stores/password-store";
 import { z } from "zod";
 
 function getFullPath(path: string) {
@@ -12,8 +13,8 @@ function getFetchOptions(method: Method): RequestInit {
     headers: new Headers({
       "content-type": "application/json; charset=utf-8",
       accept: "application/json",
+      "x-app-password": passwordStore.getState().password,
     }),
-    credentials: "include",
   };
 }
 

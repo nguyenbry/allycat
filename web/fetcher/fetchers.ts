@@ -17,7 +17,7 @@ const placeSchema = z.object({
   }),
 });
 
-export const testPlaces: {
+const _testPlaces: {
   origin: placeSchema;
   stops: placeSchema[];
   destination: placeSchema;
@@ -210,14 +210,30 @@ export enum OptimizeResponseType {
   VariableDestination,
 }
 
+const routeSchema = z.object({
+  order: z.string().min(1).array(),
+  meters: z.number(),
+  displayDistance: z.string(),
+  displayDuration: z.string(),
+});
+
+export type routeSchema = z.infer<typeof routeSchema>;
+
+const routesForDestinationSchema = z.object({
+  destination: z.string().min(1),
+  car: routeSchema.optional(),
+  bike: routeSchema.optional(),
+});
+
+export type routesPerDestinationSchema = z.infer<
+  typeof routesForDestinationSchema
+>;
+
 export const optimizeRoute = async (payload: {
   origin: string;
   stops: string[];
   destination: string | undefined;
-}): Promise<{
-  type: OptimizeResponseType;
-  orderings: string[][];
-}> => {
+}) => {
   const res = await POST(`/places/optimize`, {
     body: payload satisfies {
       origin: string;
@@ -226,30 +242,258 @@ export const optimizeRoute = async (payload: {
     },
   });
 
-  // const orderings: string[][] = [];
-
-  // const out = orderings.map((o) => {
-  //   const placesOrdered = o.map((id) => {
-  //     const place =
-  //       payload.stops.find((s) => s.id === id) ??
-  //       (payload.destination?.id === id ? payload.destination : undefined);
-
-  //     if (!place) throw new Error("Place not found in orderings");
-  //     return place;
-  //   });
-
-  //   return placesOrdered;
-  // });
-
-  if (payload.destination) {
-    return {
-      type: OptimizeResponseType.FixedDestination,
-      orderings: out,
-    };
-  } else {
-    return {
-      type: OptimizeResponseType.VariableDestination,
-      orderings: out,
-    };
-  }
+  return routesForDestinationSchema.array().parse(res);
 };
+
+const _testData: routesPerDestinationSchema[] = [
+  {
+    destination:
+      "Ei80MDAwIEJhbHRpbW9yZSBBdmUsIFBoaWxhZGVscGhpYSwgUEEgMTkxMDQsIFVTQSIxEi8KFAoSCSEZCX32xsaJEUD0EsV6XxKxEKAfKhQKEglDzC0av8bGiRH86g2jblqjdA",
+    bike: {
+      order: [
+        "ChIJ9Sdt-zHGxokRad5acsk-ifo",
+        "ChIJZxBULUDGxokRj3Dr_aK3YuQ",
+        "ChIJ5TjjILHHxokRsUNYkTmxXGg",
+        "Ei8yNjAwIFcgRmxldGNoZXIgU3QsIFBoaWxhZGVscGhpYSwgUEEgMTkxMzIsIFVTQSIxEi8KFAoSCQkYPhPtx8aJEbzdT0DCUQ4UEKgUKhQKEgld1z_HksfGiREWTRpp3WzGpw",
+        "ChIJpZVajITHxokRZT6VDp4tvtk",
+        "ChIJXSJY2vfGxokRSeHsSBbDiGI",
+        "ChIJ76GvGOvGxokR_qrOIBats84",
+      ],
+      meters: 24330,
+      displayDistance: "15.1 mi",
+      displayDuration: "1 hour 33 mins",
+    },
+    car: {
+      order: [
+        "ChIJZxBULUDGxokRj3Dr_aK3YuQ",
+        "ChIJ9Sdt-zHGxokRad5acsk-ifo",
+        "ChIJ5TjjILHHxokRsUNYkTmxXGg",
+        "ChIJpZVajITHxokRZT6VDp4tvtk",
+        "Ei8yNjAwIFcgRmxldGNoZXIgU3QsIFBoaWxhZGVscGhpYSwgUEEgMTkxMzIsIFVTQSIxEi8KFAoSCQkYPhPtx8aJEbzdT0DCUQ4UEKgUKhQKEgld1z_HksfGiREWTRpp3WzGpw",
+        "ChIJXSJY2vfGxokRSeHsSBbDiGI",
+        "ChIJ76GvGOvGxokR_qrOIBats84",
+      ],
+      meters: 23376,
+      displayDistance: "14.5 mi",
+      displayDuration: "1 hour 2 mins",
+    },
+  },
+  {
+    destination: "ChIJ9Sdt-zHGxokRad5acsk-ifo",
+    bike: {
+      order: [
+        "ChIJ5TjjILHHxokRsUNYkTmxXGg",
+        "Ei8yNjAwIFcgRmxldGNoZXIgU3QsIFBoaWxhZGVscGhpYSwgUEEgMTkxMzIsIFVTQSIxEi8KFAoSCQkYPhPtx8aJEbzdT0DCUQ4UEKgUKhQKEgld1z_HksfGiREWTRpp3WzGpw",
+        "ChIJpZVajITHxokRZT6VDp4tvtk",
+        "ChIJXSJY2vfGxokRSeHsSBbDiGI",
+        "Ei80MDAwIEJhbHRpbW9yZSBBdmUsIFBoaWxhZGVscGhpYSwgUEEgMTkxMDQsIFVTQSIxEi8KFAoSCSEZCX32xsaJEUD0EsV6XxKxEKAfKhQKEglDzC0av8bGiRH86g2jblqjdA",
+        "ChIJ76GvGOvGxokR_qrOIBats84",
+        "ChIJZxBULUDGxokRj3Dr_aK3YuQ",
+      ],
+      meters: 24178,
+      displayDistance: "15.0 mi",
+      displayDuration: "1 hour 31 mins",
+    },
+    car: {
+      order: [
+        "ChIJZxBULUDGxokRj3Dr_aK3YuQ",
+        "ChIJ76GvGOvGxokR_qrOIBats84",
+        "Ei80MDAwIEJhbHRpbW9yZSBBdmUsIFBoaWxhZGVscGhpYSwgUEEgMTkxMDQsIFVTQSIxEi8KFAoSCSEZCX32xsaJEUD0EsV6XxKxEKAfKhQKEglDzC0av8bGiRH86g2jblqjdA",
+        "ChIJXSJY2vfGxokRSeHsSBbDiGI",
+        "ChIJpZVajITHxokRZT6VDp4tvtk",
+        "Ei8yNjAwIFcgRmxldGNoZXIgU3QsIFBoaWxhZGVscGhpYSwgUEEgMTkxMzIsIFVTQSIxEi8KFAoSCQkYPhPtx8aJEbzdT0DCUQ4UEKgUKhQKEgld1z_HksfGiREWTRpp3WzGpw",
+        "ChIJ5TjjILHHxokRsUNYkTmxXGg",
+      ],
+      meters: 25744,
+      displayDistance: "16.0 mi",
+      displayDuration: "1 hour 5 mins",
+    },
+  },
+  {
+    destination: "ChIJpZVajITHxokRZT6VDp4tvtk",
+    bike: {
+      order: [
+        "ChIJXSJY2vfGxokRSeHsSBbDiGI",
+        "Ei80MDAwIEJhbHRpbW9yZSBBdmUsIFBoaWxhZGVscGhpYSwgUEEgMTkxMDQsIFVTQSIxEi8KFAoSCSEZCX32xsaJEUD0EsV6XxKxEKAfKhQKEglDzC0av8bGiRH86g2jblqjdA",
+        "ChIJ76GvGOvGxokR_qrOIBats84",
+        "ChIJZxBULUDGxokRj3Dr_aK3YuQ",
+        "ChIJ9Sdt-zHGxokRad5acsk-ifo",
+        "ChIJ5TjjILHHxokRsUNYkTmxXGg",
+        "Ei8yNjAwIFcgRmxldGNoZXIgU3QsIFBoaWxhZGVscGhpYSwgUEEgMTkxMzIsIFVTQSIxEi8KFAoSCQkYPhPtx8aJEbzdT0DCUQ4UEKgUKhQKEgld1z_HksfGiREWTRpp3WzGpw",
+      ],
+      meters: 21601,
+      displayDistance: "13.4 mi",
+      displayDuration: "1 hour 25 mins",
+    },
+    car: {
+      order: [
+        "ChIJXSJY2vfGxokRSeHsSBbDiGI",
+        "Ei80MDAwIEJhbHRpbW9yZSBBdmUsIFBoaWxhZGVscGhpYSwgUEEgMTkxMDQsIFVTQSIxEi8KFAoSCSEZCX32xsaJEUD0EsV6XxKxEKAfKhQKEglDzC0av8bGiRH86g2jblqjdA",
+        "ChIJ76GvGOvGxokR_qrOIBats84",
+        "ChIJZxBULUDGxokRj3Dr_aK3YuQ",
+        "ChIJ9Sdt-zHGxokRad5acsk-ifo",
+        "ChIJ5TjjILHHxokRsUNYkTmxXGg",
+        "Ei8yNjAwIFcgRmxldGNoZXIgU3QsIFBoaWxhZGVscGhpYSwgUEEgMTkxMzIsIFVTQSIxEi8KFAoSCQkYPhPtx8aJEbzdT0DCUQ4UEKgUKhQKEgld1z_HksfGiREWTRpp3WzGpw",
+      ],
+      meters: 23569,
+      displayDistance: "14.6 mi",
+      displayDuration: "1 hour 4 mins",
+    },
+  },
+  {
+    destination:
+      "Ei8yNjAwIFcgRmxldGNoZXIgU3QsIFBoaWxhZGVscGhpYSwgUEEgMTkxMzIsIFVTQSIxEi8KFAoSCQkYPhPtx8aJEbzdT0DCUQ4UEKgUKhQKEgld1z_HksfGiREWTRpp3WzGpw",
+    bike: {
+      order: [
+        "ChIJXSJY2vfGxokRSeHsSBbDiGI",
+        "Ei80MDAwIEJhbHRpbW9yZSBBdmUsIFBoaWxhZGVscGhpYSwgUEEgMTkxMDQsIFVTQSIxEi8KFAoSCSEZCX32xsaJEUD0EsV6XxKxEKAfKhQKEglDzC0av8bGiRH86g2jblqjdA",
+        "ChIJ76GvGOvGxokR_qrOIBats84",
+        "ChIJZxBULUDGxokRj3Dr_aK3YuQ",
+        "ChIJ9Sdt-zHGxokRad5acsk-ifo",
+        "ChIJ5TjjILHHxokRsUNYkTmxXGg",
+        "ChIJpZVajITHxokRZT6VDp4tvtk",
+      ],
+      meters: 21420,
+      displayDistance: "13.3 mi",
+      displayDuration: "1 hour 24 mins",
+    },
+    car: {
+      order: [
+        "ChIJXSJY2vfGxokRSeHsSBbDiGI",
+        "Ei80MDAwIEJhbHRpbW9yZSBBdmUsIFBoaWxhZGVscGhpYSwgUEEgMTkxMDQsIFVTQSIxEi8KFAoSCSEZCX32xsaJEUD0EsV6XxKxEKAfKhQKEglDzC0av8bGiRH86g2jblqjdA",
+        "ChIJ76GvGOvGxokR_qrOIBats84",
+        "ChIJZxBULUDGxokRj3Dr_aK3YuQ",
+        "ChIJ9Sdt-zHGxokRad5acsk-ifo",
+        "ChIJ5TjjILHHxokRsUNYkTmxXGg",
+        "ChIJpZVajITHxokRZT6VDp4tvtk",
+      ],
+      meters: 21153,
+      displayDistance: "13.1 mi",
+      displayDuration: "59 mins",
+    },
+  },
+  {
+    destination: "ChIJZxBULUDGxokRj3Dr_aK3YuQ",
+    bike: {
+      order: [
+        "Ei80MDAwIEJhbHRpbW9yZSBBdmUsIFBoaWxhZGVscGhpYSwgUEEgMTkxMDQsIFVTQSIxEi8KFAoSCSEZCX32xsaJEUD0EsV6XxKxEKAfKhQKEglDzC0av8bGiRH86g2jblqjdA",
+        "ChIJ76GvGOvGxokR_qrOIBats84",
+        "ChIJXSJY2vfGxokRSeHsSBbDiGI",
+        "ChIJpZVajITHxokRZT6VDp4tvtk",
+        "Ei8yNjAwIFcgRmxldGNoZXIgU3QsIFBoaWxhZGVscGhpYSwgUEEgMTkxMzIsIFVTQSIxEi8KFAoSCQkYPhPtx8aJEbzdT0DCUQ4UEKgUKhQKEgld1z_HksfGiREWTRpp3WzGpw",
+        "ChIJ5TjjILHHxokRsUNYkTmxXGg",
+        "ChIJ9Sdt-zHGxokRad5acsk-ifo",
+      ],
+      meters: 24233,
+      displayDistance: "15.1 mi",
+      displayDuration: "1 hour 33 mins",
+    },
+    car: {
+      order: [
+        "ChIJ9Sdt-zHGxokRad5acsk-ifo",
+        "ChIJ5TjjILHHxokRsUNYkTmxXGg",
+        "ChIJpZVajITHxokRZT6VDp4tvtk",
+        "Ei8yNjAwIFcgRmxldGNoZXIgU3QsIFBoaWxhZGVscGhpYSwgUEEgMTkxMzIsIFVTQSIxEi8KFAoSCQkYPhPtx8aJEbzdT0DCUQ4UEKgUKhQKEgld1z_HksfGiREWTRpp3WzGpw",
+        "ChIJXSJY2vfGxokRSeHsSBbDiGI",
+        "Ei80MDAwIEJhbHRpbW9yZSBBdmUsIFBoaWxhZGVscGhpYSwgUEEgMTkxMDQsIFVTQSIxEi8KFAoSCSEZCX32xsaJEUD0EsV6XxKxEKAfKhQKEglDzC0av8bGiRH86g2jblqjdA",
+        "ChIJ76GvGOvGxokR_qrOIBats84",
+      ],
+      meters: 23761,
+      displayDistance: "14.8 mi",
+      displayDuration: "1 hour 1 min",
+    },
+  },
+  {
+    destination: "ChIJ5TjjILHHxokRsUNYkTmxXGg",
+    bike: {
+      order: [
+        "ChIJ9Sdt-zHGxokRad5acsk-ifo",
+        "ChIJZxBULUDGxokRj3Dr_aK3YuQ",
+        "Ei80MDAwIEJhbHRpbW9yZSBBdmUsIFBoaWxhZGVscGhpYSwgUEEgMTkxMDQsIFVTQSIxEi8KFAoSCSEZCX32xsaJEUD0EsV6XxKxEKAfKhQKEglDzC0av8bGiRH86g2jblqjdA",
+        "ChIJ76GvGOvGxokR_qrOIBats84",
+        "ChIJXSJY2vfGxokRSeHsSBbDiGI",
+        "ChIJpZVajITHxokRZT6VDp4tvtk",
+        "Ei8yNjAwIFcgRmxldGNoZXIgU3QsIFBoaWxhZGVscGhpYSwgUEEgMTkxMzIsIFVTQSIxEi8KFAoSCQkYPhPtx8aJEbzdT0DCUQ4UEKgUKhQKEgld1z_HksfGiREWTRpp3WzGpw",
+      ],
+      meters: 24083,
+      displayDistance: "15.0 mi",
+      displayDuration: "1 hour 35 mins",
+    },
+    car: {
+      order: [
+        "ChIJXSJY2vfGxokRSeHsSBbDiGI",
+        "Ei80MDAwIEJhbHRpbW9yZSBBdmUsIFBoaWxhZGVscGhpYSwgUEEgMTkxMDQsIFVTQSIxEi8KFAoSCSEZCX32xsaJEUD0EsV6XxKxEKAfKhQKEglDzC0av8bGiRH86g2jblqjdA",
+        "ChIJ76GvGOvGxokR_qrOIBats84",
+        "ChIJZxBULUDGxokRj3Dr_aK3YuQ",
+        "ChIJ9Sdt-zHGxokRad5acsk-ifo",
+        "ChIJpZVajITHxokRZT6VDp4tvtk",
+        "Ei8yNjAwIFcgRmxldGNoZXIgU3QsIFBoaWxhZGVscGhpYSwgUEEgMTkxMzIsIFVTQSIxEi8KFAoSCQkYPhPtx8aJEbzdT0DCUQ4UEKgUKhQKEgld1z_HksfGiREWTRpp3WzGpw",
+      ],
+      meters: 25544,
+      displayDistance: "15.9 mi",
+      displayDuration: "1 hour 6 mins",
+    },
+  },
+  {
+    destination: "ChIJ76GvGOvGxokR_qrOIBats84",
+    bike: {
+      order: [
+        "ChIJ9Sdt-zHGxokRad5acsk-ifo",
+        "ChIJZxBULUDGxokRj3Dr_aK3YuQ",
+        "ChIJ5TjjILHHxokRsUNYkTmxXGg",
+        "Ei8yNjAwIFcgRmxldGNoZXIgU3QsIFBoaWxhZGVscGhpYSwgUEEgMTkxMzIsIFVTQSIxEi8KFAoSCQkYPhPtx8aJEbzdT0DCUQ4UEKgUKhQKEgld1z_HksfGiREWTRpp3WzGpw",
+        "ChIJpZVajITHxokRZT6VDp4tvtk",
+        "ChIJXSJY2vfGxokRSeHsSBbDiGI",
+        "Ei80MDAwIEJhbHRpbW9yZSBBdmUsIFBoaWxhZGVscGhpYSwgUEEgMTkxMDQsIFVTQSIxEi8KFAoSCSEZCX32xsaJEUD0EsV6XxKxEKAfKhQKEglDzC0av8bGiRH86g2jblqjdA",
+      ],
+      meters: 22795,
+      displayDistance: "14.2 mi",
+      displayDuration: "1 hour 29 mins",
+    },
+    car: {
+      order: [
+        "ChIJZxBULUDGxokRj3Dr_aK3YuQ",
+        "ChIJ9Sdt-zHGxokRad5acsk-ifo",
+        "ChIJ5TjjILHHxokRsUNYkTmxXGg",
+        "ChIJpZVajITHxokRZT6VDp4tvtk",
+        "Ei8yNjAwIFcgRmxldGNoZXIgU3QsIFBoaWxhZGVscGhpYSwgUEEgMTkxMzIsIFVTQSIxEi8KFAoSCQkYPhPtx8aJEbzdT0DCUQ4UEKgUKhQKEgld1z_HksfGiREWTRpp3WzGpw",
+        "ChIJXSJY2vfGxokRSeHsSBbDiGI",
+        "Ei80MDAwIEJhbHRpbW9yZSBBdmUsIFBoaWxhZGVscGhpYSwgUEEgMTkxMDQsIFVTQSIxEi8KFAoSCSEZCX32xsaJEUD0EsV6XxKxEKAfKhQKEglDzC0av8bGiRH86g2jblqjdA",
+      ],
+      meters: 21824,
+      displayDistance: "13.6 mi",
+      displayDuration: "1 hour 1 min",
+    },
+  },
+  {
+    destination: "ChIJXSJY2vfGxokRSeHsSBbDiGI",
+    bike: {
+      order: [
+        "ChIJ5TjjILHHxokRsUNYkTmxXGg",
+        "ChIJpZVajITHxokRZT6VDp4tvtk",
+        "Ei8yNjAwIFcgRmxldGNoZXIgU3QsIFBoaWxhZGVscGhpYSwgUEEgMTkxMzIsIFVTQSIxEi8KFAoSCQkYPhPtx8aJEbzdT0DCUQ4UEKgUKhQKEgld1z_HksfGiREWTRpp3WzGpw",
+        "ChIJ9Sdt-zHGxokRad5acsk-ifo",
+        "ChIJZxBULUDGxokRj3Dr_aK3YuQ",
+        "Ei80MDAwIEJhbHRpbW9yZSBBdmUsIFBoaWxhZGVscGhpYSwgUEEgMTkxMDQsIFVTQSIxEi8KFAoSCSEZCX32xsaJEUD0EsV6XxKxEKAfKhQKEglDzC0av8bGiRH86g2jblqjdA",
+        "ChIJ76GvGOvGxokR_qrOIBats84",
+      ],
+      meters: 23929,
+      displayDistance: "14.9 mi",
+      displayDuration: "1 hour 35 mins",
+    },
+    car: {
+      order: [
+        "ChIJ5TjjILHHxokRsUNYkTmxXGg",
+        "ChIJpZVajITHxokRZT6VDp4tvtk",
+        "Ei8yNjAwIFcgRmxldGNoZXIgU3QsIFBoaWxhZGVscGhpYSwgUEEgMTkxMzIsIFVTQSIxEi8KFAoSCQkYPhPtx8aJEbzdT0DCUQ4UEKgUKhQKEgld1z_HksfGiREWTRpp3WzGpw",
+        "ChIJ9Sdt-zHGxokRad5acsk-ifo",
+        "ChIJZxBULUDGxokRj3Dr_aK3YuQ",
+        "ChIJ76GvGOvGxokR_qrOIBats84",
+        "Ei80MDAwIEJhbHRpbW9yZSBBdmUsIFBoaWxhZGVscGhpYSwgUEEgMTkxMDQsIFVTQSIxEi8KFAoSCSEZCX32xsaJEUD0EsV6XxKxEKAfKhQKEglDzC0av8bGiRH86g2jblqjdA",
+      ],
+      meters: 25516,
+      displayDistance: "15.9 mi",
+      displayDuration: "1 hour 8 mins",
+    },
+  },
+];

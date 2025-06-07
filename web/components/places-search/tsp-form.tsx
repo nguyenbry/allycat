@@ -4,7 +4,7 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "../hooks/use-media-query";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { focusAtom } from "jotai-optics";
 import {
   Dialog,
@@ -25,13 +25,14 @@ import {
 import { Input } from "@/components/ui/input";
 import {
   optimizeRoute,
-  testPlaces,
+  type routeSchema,
+  type routesPerDestinationSchema,
   type placeSchema,
 } from "@/fetcher/fetchers";
 import {
   atom,
   type createStore,
-  ExtractAtomValue,
+  type ExtractAtomValue,
   type PrimitiveAtom,
   Provider,
   useAtom,
@@ -40,11 +41,15 @@ import {
   useStore,
 } from "jotai";
 import { usePlacesQuery } from "./places-search-test";
-import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { Bike, Car, Loader2, Map, Pencil, Plus, Trash2 } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
 import { type PropsWithCn } from "../types";
 import { useMemo } from "use-memo-one";
 import { useQuery } from "@tanstack/react-query";
+import type { Expect, Equal } from "type-testing";
+import { Badge } from "../ui/badge";
+import { useStore as useZtore } from "zustand";
+import { passwordStore } from "@/stores/password-store";
 
 type OmitProps<
   TComponent extends
@@ -69,11 +74,28 @@ const routeAtom = atom<{
   stops: placeSchema[];
   destination: placeSchema | undefined;
   origin: placeSchema | undefined;
-}>(testPlaces);
+}>({
+  stops: [],
+  destination: undefined,
+  origin: undefined,
+});
 
 const stopsAtom = focusAtom(routeAtom, (o) => o.prop("stops"));
 const originAtom = focusAtom(routeAtom, (o) => o.prop("origin"));
 const destinationAtom = focusAtom(routeAtom, (o) => o.prop("destination"));
+
+function PasswordInput() {
+  const password = useZtore(passwordStore, (s) => s.password);
+  const setPassword = useZtore(passwordStore, (s) => s.setPassword);
+
+  return (
+    <Input
+      placeholder="Enter app password"
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+    />
+  );
+}
 
 function TSPFormInner() {
   const [bias, setBias] = useAtom(locationBiasAtom);
@@ -86,50 +108,56 @@ function TSPFormInner() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="leading-none font-semibold text-xl">Create a route</div>
+      <div className="flex flex-col gap-4 p-6">
+        <div className="leading-none font-semibold text-xl">Create a route</div>
 
-      <div className="mt-auto flex flex-col gap-3">
-        <div className="flex flex-col lg:grid lg:grid-cols-2 gap-2">
+        <div className="mt-auto flex flex-col gap-3">
+          <PasswordInput />
+          <div className="flex flex-col lg:grid lg:grid-cols-2 gap-2">
+            <Provider>
+              {/* allow the bias form to handle its own state, but the trigger needs the outer scope  */}
+              <LocationSelectResponsiveDrawerOrDialog
+                locationBias={bias?.location}
+                title="Location Bias"
+                description="Search for a location. Click save when you're done."
+                onSubmit={setBias}
+              >
+                <SetBiasTrigger jotaiStore={outerStore} />
+              </LocationSelectResponsiveDrawerOrDialog>
+            </Provider>
+
+            <Provider>
+              {/* allow the bias form to handle its own state, but the trigger needs the outer scope  */}
+              <LocationSelectResponsiveDrawerOrDialog
+                locationBias={bias?.location}
+                title="Start Location"
+                description="Search for a location. Click save when you're done."
+                onSubmit={setOrigin}
+              >
+                <SetOriginTrigger jotaiStore={outerStore} />
+              </LocationSelectResponsiveDrawerOrDialog>
+            </Provider>
+          </div>
+
+          <StopsArea />
+
           <Provider>
             {/* allow the bias form to handle its own state, but the trigger needs the outer scope  */}
             <LocationSelectResponsiveDrawerOrDialog
               locationBias={bias?.location}
-              title="Location Bias"
+              title="End Location"
               description="Search for a location. Click save when you're done."
-              onSubmit={setBias}
+              onSubmit={setDest}
             >
-              <SetBiasTrigger jotaiStore={outerStore} />
+              <SetDestinationTrigger jotaiStore={outerStore} />
             </LocationSelectResponsiveDrawerOrDialog>
           </Provider>
-
-          <Provider>
-            {/* allow the bias form to handle its own state, but the trigger needs the outer scope  */}
-            <LocationSelectResponsiveDrawerOrDialog
-              locationBias={bias?.location}
-              title="Start Location"
-              description="Search for a location. Click save when you're done."
-              onSubmit={setOrigin}
-            >
-              <SetOriginTrigger jotaiStore={outerStore} />
-            </LocationSelectResponsiveDrawerOrDialog>
-          </Provider>
+          <RemoveEndButton />
         </div>
+      </div>
 
-        <StopsArea />
-
-        <Provider>
-          {/* allow the bias form to handle its own state, but the trigger needs the outer scope  */}
-          <LocationSelectResponsiveDrawerOrDialog
-            locationBias={bias?.location}
-            title="End Location"
-            description="Search for a location. Click save when you're done."
-            onSubmit={setDest}
-          >
-            <SetDestinationTrigger jotaiStore={outerStore} />
-          </LocationSelectResponsiveDrawerOrDialog>
-        </Provider>
-        <RemoveEndButton />
-        <CalculateButton />
+      <div className="p-2">
+        <CalculatedRouteArea />
       </div>
     </div>
   );
@@ -144,16 +172,16 @@ const queryControllerAtomAtom = atom((get) => {
   const queryControllerAtom = atom<{
     enabled: boolean;
     payload: {
-      stops: placeSchema[];
-      destination: placeSchema | undefined;
-      origin: placeSchema;
+      stops: string[];
+      destination: string | undefined;
+      origin: string;
     };
   }>({
     enabled: false,
     payload: {
-      origin: route.origin,
-      destination: route.destination,
-      stops: route.stops,
+      origin: route.origin.id,
+      destination: route.destination?.id,
+      stops: route.stops.map((x) => x.id),
     },
   });
   return queryControllerAtom;
@@ -172,11 +200,12 @@ function CalculatedRouteArea() {
   return (
     <>
       <ActuallyCalculateButton queryControllerAtom={a} />
+      <CalculatedRoutesArea queryControllerAtom={a} />
     </>
   );
 }
 
-function X({
+function CalculatedRoutesArea({
   queryControllerAtom,
 }: {
   queryControllerAtom: NonNullable<
@@ -193,7 +222,158 @@ function X({
     queryFn: () => optimizeRoute(payload),
   });
 
-  return undefined;
+  const perDestinationRoutes = query.data;
+
+  if (!perDestinationRoutes) return undefined;
+
+  if (!enabled) return undefined;
+
+  return (
+    <div className="flex flex-col gap-1">
+      {perDestinationRoutes
+        .slice()
+        .sort((a, b) => {
+          // sort by ascending distance
+          return (a.bike?.meters ?? Infinity) - (b.bike?.meters ?? Infinity);
+        })
+        .map((x) => {
+          return <RoutesForDestination key={x.destination} route={x} />;
+        })}
+    </div>
+  );
+}
+
+function RoutesForDestination({
+  route: { destination, bike, car },
+}: {
+  route: routesPerDestinationSchema;
+}) {
+  const r = useAtomValue(routeAtom);
+
+  if (!bike && !car) {
+    return undefined;
+  }
+
+  const d =
+    r.destination && r.destination.id === destination
+      ? r.destination
+      : r.stops.find((x) => x.id === destination);
+
+  if (!d) throw new Error("what happened to the destination?");
+
+  return (
+    <div className="rounded-md border p-3 bg-background flex flex-col gap-2">
+      <div className="flex flex-col items-center">
+        <span className="tracking-tight text-sm">
+          End: {d.displayName.text}
+        </span>
+        <span className="tracking-tight text-xs text-muted-foreground">
+          {d.formattedAddress}
+        </span>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        {bike && (
+          <RouteForVehicle
+            destination={destination}
+            route={bike}
+            vehicle={Vehicle.Bike}
+          />
+        )}
+        {car && (
+          <RouteForVehicle
+            route={car}
+            vehicle={Vehicle.Car}
+            destination={destination}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+enum Vehicle {
+  Bike,
+  Car,
+}
+
+function RouteForVehicle({
+  route,
+  vehicle,
+  destination,
+}: {
+  vehicle: Vehicle;
+  route: routeSchema;
+  destination: string;
+}) {
+  const getIcon = () => {
+    switch (vehicle) {
+      case Vehicle.Bike:
+        return Bike;
+      case Vehicle.Car:
+        return Car;
+      default:
+        type _ = Expect<Equal<typeof vehicle, never>>;
+        throw new Error("Unknown vehicle type");
+    }
+  };
+
+  const Icon = getIcon();
+
+  return (
+    <div className="border border-border rounded-sm p-3 flex gap-2 items-center">
+      <div className="px-2 shrink-0">
+        <Icon className="text-muted-foreground size-7" />
+      </div>
+      <div className="flex flex-col grow gap-4">
+        <div className="flex gap-2">
+          <Badge>{route.displayDistance}</Badge>
+          <Badge>{route.displayDuration}</Badge>
+        </div>
+        <div className="flex flex-col divide-y-[1px] divide-border">
+          {route.order.map((placeId) => {
+            return <A key={placeId} placeId={placeId} />;
+          })}
+          <A placeId={destination} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function A({ placeId }: { placeId: string }) {
+  const route = useAtomValue(routeAtom);
+
+  const found =
+    route.stops.find((x) => x.id === placeId) ??
+    (route.destination?.id === placeId ? route.destination : undefined);
+
+  if (!found) throw new Error("Place not found in route");
+
+  return (
+    <div className="p-1 flex gap-1.5">
+      <div className="flex flex-col">
+        <span className="text-xs break-all">{found.displayName.text}</span>
+        <span className="text-muted-foreground text-xs break-all">
+          {found.formattedAddress}
+        </span>
+      </div>
+      <a
+        href={found.googleMapsLinks.directionsUri}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={cn(
+          buttonVariants({
+            size: "icon-sm",
+            variant: "outline",
+          }),
+          "shrink-0 ml-auto self-start"
+        )}
+      >
+        <Map className="size-3" />
+      </a>
+    </div>
+  );
 }
 
 function ActuallyCalculateButton({
@@ -203,7 +383,7 @@ function ActuallyCalculateButton({
     ExtractAtomValue<typeof queryControllerAtomAtom>
   >;
 }) {
-  const setEnabled = useSetAtom(
+  const [enabled, setEnabled] = useAtom(
     useMemo(() => {
       const enabledAtom = focusAtom(queryControllerAtom, (o) =>
         o.prop("enabled")
@@ -212,39 +392,13 @@ function ActuallyCalculateButton({
     }, [queryControllerAtom])
   );
 
+  if (enabled) return undefined;
+
   return (
     <Button
       onClick={() => {
         setEnabled(true);
       }}
-      className="w-full"
-    >
-      Calculate
-    </Button>
-  );
-}
-
-function CalculateButton() {
-  const origin = useAtomValue(originAtom);
-  const stops = useAtomValue(stopsAtom);
-  const destination = useAtomValue(destinationAtom);
-
-  /**
-   * If there is only 1 stop, this app isn't useful
-   */
-  const disabled = !origin || stops.length <= 1;
-
-  return (
-    <Button
-      onClick={() => {
-        console.log("final payload", {
-          origin: origin?.id ?? null,
-          stops: stops.map((x) => x.id),
-          destination: destination?.id ?? null,
-        });
-      }}
-      disabled={disabled}
-      variant={disabled ? "secondary" : "default"}
       className="w-full"
     >
       Calculate

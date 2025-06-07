@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { PropsWithCn } from "./types";
+import { type PropsWithCn } from "./types";
 
 export function ThemeToggle(props: PropsWithCn) {
   const { setTheme } = useTheme();
