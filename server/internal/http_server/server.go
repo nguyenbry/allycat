@@ -24,13 +24,13 @@ func NewServer() *Server {
 	}
 }
 
-func (s *Server) RegisterRoutes(hs handlers.Handlers) {
-	routes.InitializePlacesRoutes(s.mux, hs)
+func (s *Server) RegisterRoutes(hs handlers.Handlers, pw string) {
+	routes.InitializePlacesRoutes(s.mux, hs, pw)
 
 	s.initialized = true
 }
 
-func (s *Server) Start(addr string) error {
+func (s *Server) Start(addr string, allowedOrigin string) error {
 	if !s.initialized {
 		return errors.New("server routes not initialized, call RegisterRoutes first")
 	}
@@ -41,10 +41,10 @@ func (s *Server) Start(addr string) error {
 	// for more ideas, see: https://developer.github.com/v3/#cross-origin-resource-sharing
 	r.Use(cors.Handler(cors.Options{
 		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
-		AllowedOrigins: []string{"http://localhost:3000"},
+		AllowedOrigins: []string{allowedOrigin},
 		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "X-App-Password"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
 		MaxAge:           300, // Maximum value not ignored by any of major browsers

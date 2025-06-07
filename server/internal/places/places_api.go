@@ -8,17 +8,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sort"
 	"strings"
 	"sync"
 
 	"golang.org/x/sync/errgroup"
-)
-
-type Vehicle int
-
-const (
-	Bike Vehicle = iota
-	Car
 )
 
 type PlacesApi struct {
@@ -288,15 +282,21 @@ func (p optimizePayload) asBike() optimizePayload {
 	return p
 }
 
-func (p *PlacesApi) OptimizeRoute(opts optimizeRouteOptions) error {
+type Out struct {
+	End       string                 `json:"destination"`
+	BikeRoute *optimizeRouteResponse `json:"bike,omitempty"`
+	CarRoute  *optimizeRouteResponse `json:"car,omitempty"`
+}
+
+func (p *PlacesApi) OptimizeRoute(opts optimizeRouteOptions) ([]Out, error) {
 	// a valid route is made of a start, at least two stops,
 	// and an optional end
 	if opts.start == "" {
-		return errors.New("start location is required")
+		return nil, errors.New("start location is required")
 	} else if len(opts.stops) < 2 {
-		return errors.New("at least two stops are required")
+		return nil, errors.New("at least two stops are required")
 	} else if opts.end != nil && *opts.end == "" {
-		return errors.New("end location cannot be empty if provided")
+		return nil, errors.New("end location cannot be empty if provided")
 	}
 
 	fmt.Printf("Optimizing with: %+v\n", opts)
@@ -304,7 +304,7 @@ func (p *PlacesApi) OptimizeRoute(opts optimizeRouteOptions) error {
 	nakedBodies, err := optimizePayloadFromOptions(opts)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	bikeBodies := make([]optimizePayload, 0, len(nakedBodies))
@@ -401,7 +401,7 @@ func (p *PlacesApi) OptimizeRoute(opts optimizeRouteOptions) error {
 		for _, route := range respData.Routes {
 			// map route to ids
 
-			order := make([]string, 0, len(body.Stops)+1)
+			order := make([]string, 0, len(body.Stops))
 
 			for _, idx := range route.Order {
 				if idx > len(body.Stops)-1 || idx < 0 {
@@ -410,15 +410,14 @@ func (p *PlacesApi) OptimizeRoute(opts optimizeRouteOptions) error {
 				order = append(order, body.Stops[idx].Id)
 			}
 
-			order = append(order, body.End.Id)
-
-			if len(order) != len(body.Stops)+1 {
+			if len(order) != len(body.Stops) {
 				return nil, fmt.Errorf("expected len %d but got %d", len(order), len(body.Stops)+1)
 			}
 
 			routes = append(routes, optimizeRouteResponse{
 				Order:           order,
 				Meters:          route.Meters,
+				end:             body.End.Id,
 				DisplayDistance: route.Display.Distance.Text,
 				DisplayDuration: route.Display.Duration.Text,
 			})
@@ -466,49 +465,70 @@ func (p *PlacesApi) OptimizeRoute(opts optimizeRouteOptions) error {
 	}
 
 	if err := bikeEg.Wait(); err != nil {
-		return err
+		return nil, err
 	}
+
 	if err := carEg.Wait(); err != nil {
-		return err
+		return nil, err
 	}
 
-	for i, b := range bikeResponses {
-		fmt.Println(i, b.Order, b.DisplayDistance, b.DisplayDuration)
+	bikeKeyByEnd := make(map[string][]optimizeRouteResponse)
+
+	for _, x := range bikeResponses {
+		key := x.end
+
+		bikeKeyByEnd[key] = append(bikeKeyByEnd[key], x)
 	}
 
-	for i, c := range carResponses {
-		fmt.Println(i, c.Order, c.DisplayDistance, c.DisplayDuration)
+	carKeyByEnd := make(map[string][]optimizeRouteResponse)
+
+	for _, x := range carResponses {
+		key := x.end
+
+		carKeyByEnd[key] = append(carKeyByEnd[key], x)
 	}
 
-	// sort.Slice(items, func(i, j int) bool {
-	// 	return items[i].distance < items[j].distance
-	// })
+	shortestByEnd := make(map[string]Out)
 
-	// _ = func(path string, jsonBytes []byte) {
+	for endId, routes := range bikeKeyByEnd {
+		// all routes ending at endId
 
-	// 	// Create directory if it doesn't exist
-	// 	dir := filepath.Dir(path)
-	// 	err := os.MkdirAll(dir, 0755)
-	// 	if err != nil {
-	// 		return
-	// 	}
+		sort.Slice(routes, func(i, j int) bool {
+			// sort asc
+			return routes[i].Meters < routes[j].Meters
+		})
 
-	// 	// Write file
-	// 	err = os.WriteFile(path, jsonBytes, 0644)
-	// 	if err != nil {
-	// 		return
-	// 	}
+		// get the shortest route going by bike that ends up at this destination
+		shortest := routes[0]
 
-	// 	fmt.Printf("Created directory and wrote file: %s\n", path)
-	// }
+		x := shortestByEnd[endId]
+		x.BikeRoute = &shortest
+		x.End = shortest.end
+		shortestByEnd[endId] = x
+	}
 
-	// parseRes := func(b []byte) error {
-	// 	return nil
-	// }
+	for endId, routes := range carKeyByEnd {
+		// all routes ending at endId
 
-	// writeWithDirectoryCreation("tmp/optimize_route_response_bike.json", respBody)
+		sort.Slice(routes, func(i, j int) bool {
+			// sort asc
+			return routes[i].Meters < routes[j].Meters
+		})
 
-	return nil
+		shortest := routes[0]
+
+		x := shortestByEnd[endId]
+		x.CarRoute = &shortest
+		x.End = shortest.end
+		shortestByEnd[endId] = x
+	}
+
+	out := make([]Out, 0, len(shortestByEnd))
+	for _, x := range shortestByEnd {
+		out = append(out, x)
+	}
+
+	return out, nil
 }
 
 type optimizeRouteResponse struct {
@@ -516,6 +536,8 @@ type optimizeRouteResponse struct {
 	Meters          int64    `json:"meters"`
 	DisplayDistance string   `json:"displayDistance"`
 	DisplayDuration string   `json:"displayDuration"`
+
+	end string
 }
 
 type place struct {

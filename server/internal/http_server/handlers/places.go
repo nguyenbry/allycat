@@ -30,11 +30,11 @@ func (h PlacesHandler) HandleTextSearch(w http.ResponseWriter, r *http.Request) 
 	var reqBody places.TextSearchOptions
 
 	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
-		writeJSONResponse(w, newResponse().message(fmt.Sprintf("Error decoding request body: %v", err)), http.StatusBadRequest)
+		WriteJSONResponse(w, NewResponse().WithMessage(fmt.Sprintf("Error decoding request body: %v", err)), http.StatusBadRequest)
 	}
 
 	if len(reqBody.Query) < 4 {
-		writeJSONResponse(w, newResponse().message("Query must be at least 4 characters long"), http.StatusBadRequest)
+		WriteJSONResponse(w, NewResponse().WithMessage("Query must be at least 4 characters long"), http.StatusBadRequest)
 		return
 	}
 
@@ -43,9 +43,9 @@ func (h PlacesHandler) HandleTextSearch(w http.ResponseWriter, r *http.Request) 
 	res, err := h.api.TextSearch(reqBody)
 
 	if err != nil {
-		writeJSONResponse(w, newResponse().message(fmt.Sprintf("Error searching places: %v", err)), http.StatusInternalServerError)
+		WriteJSONResponse(w, NewResponse().WithMessage(fmt.Sprintf("Error searching places: %v", err)), http.StatusInternalServerError)
 	} else {
-		writeJSONResponse(w, newResponse().data(res), http.StatusOK)
+		WriteJSONResponse(w, NewResponse().WithData(res), http.StatusOK)
 	}
 }
 
@@ -61,16 +61,16 @@ func (h PlacesHandler) HandleOptimizeRoute(w http.ResponseWriter, r *http.Reques
 	// 	return
 	// }
 	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
-		writeJSONResponse(w, newResponse().message("Invalid payload"), http.StatusBadRequest)
+		WriteJSONResponse(w, NewResponse().WithMessage("Invalid payload"), http.StatusBadRequest)
 		return
 	} else if reqBody.Start == "" {
-		writeJSONResponse(w, newResponse().message("Start location is required"), http.StatusBadRequest)
+		WriteJSONResponse(w, NewResponse().WithMessage("Start location is required"), http.StatusBadRequest)
 		return
 	} else if len(reqBody.Stops) < 2 {
-		writeJSONResponse(w, newResponse().message("At least two stops are required"), http.StatusBadRequest)
+		WriteJSONResponse(w, NewResponse().WithMessage("At least two stops are required"), http.StatusBadRequest)
 		return
 	} else if reqBody.End != nil && *reqBody.End == "" {
-		writeJSONResponse(w, newResponse().message("Destination is empty"), http.StatusBadRequest)
+		WriteJSONResponse(w, NewResponse().WithMessage("Destination is empty"), http.StatusBadRequest)
 		return
 	}
 
@@ -79,11 +79,12 @@ func (h PlacesHandler) HandleOptimizeRoute(w http.ResponseWriter, r *http.Reques
 		WithStart(reqBody.Start).
 		WithStops(reqBody.Stops).WithEnd(reqBody.End)
 
-	err := h.api.OptimizeRoute(payload)
+	routes, err := h.api.OptimizeRoute(payload)
 
 	if err != nil {
-		w.Write([]byte(err.Error()))
+		fmt.Printf("error occurred during 'OptimizeRoute': %v\n", err.Error())
+		writeServerError(w)
 	} else {
-		w.Write([]byte("Hello"))
+		WriteJSONResponse(w, NewResponse().WithData(routes), http.StatusOK)
 	}
 }
