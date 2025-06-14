@@ -25,6 +25,8 @@ func main() {
 		panic("API_PW must be at least 5 characters")
 	}
 
+	fmt.Println("hash is", pw)
+
 	origin, ok := os.LookupEnv("ALLOWED_ORIGIN")
 
 	if !ok || origin == "" {

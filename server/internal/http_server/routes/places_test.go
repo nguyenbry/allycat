@@ -17,5 +17,11 @@ func TestPw(t *testing.T) {
 	hash, err := pw.HashPassword()
 	assert.Nil(t, err, "should not error")
 
+	ok, err := pw.ComparePasswordAndHash(hash)
+
+	assert.Nil(t, err, "should not error hash")
+
+	assert.True(t, ok, "should be good")
+
 	fmt.Println("hash", hash)
 }
