@@ -697,7 +697,7 @@ function LocationSelectResponsiveDrawerOrDialog({
           ref={inputRef}
           locationBias={locationBias}
           onSubmit={onSubmitWrapped}
-          className="px-4 pb-8"
+          className="px-4 pb-8 grow"
           inputAtom={inputAtom}
           selectedLocationFormAtom={selectedLocationFormAtom}
         />
@@ -721,14 +721,18 @@ function DrawerOrDialogContent({
 }> & { ref?: React.Ref<HTMLInputElement> }) {
   const [value, setValue] = useAtom(inputAtom);
 
-  const [selected, setSelected] = useAtom(selectedLocationFormAtom);
-
   const placesQuery = usePlacesQuery(value, locationBias);
+
+  const heightAtom = useMemo(() => {
+    return atom<number | undefined>(undefined);
+  }, []);
+
+  const h = useAtomValue(heightAtom);
 
   const places = placesQuery.data;
 
   return (
-    <div className={cn("grid items-start gap-6", className)}>
+    <div className={cn("flex flex-col gap-4", className)}>
       <div className="grid gap-3">
         <Input
           ref={ref}
@@ -740,34 +744,68 @@ function DrawerOrDialogContent({
       </div>
       {placesQuery.isFetching && <Loader2 className="animate-spin size-4" />}
       {places && (
-        <ScrollArea className="h-[60dvh]">
-          <div className="grid gap-2">
-            {places.map((p) => {
-              return (
-                <PlaceOptionButton
-                  onClick={() => {
-                    setSelected(p);
-                  }}
-                  place={p}
-                  key={p.id}
-                  isSelected={p.id === selected?.id}
-                />
-              );
-            })}
-          </div>
-        </ScrollArea>
+        <Box className="border border-blue-400 grow" heightAtom={heightAtom}>
+          {h !== undefined && (
+            <ScrollArea
+              style={{
+                height: h,
+              }}
+            >
+              <div className="grid gap-2">
+                {places.map((p) => {
+                  return (
+                    <PlaceOptionButton
+                      onClick={() => onSubmit(p)}
+                      place={p}
+                      key={p.id}
+                      isSelected={false}
+                    />
+                  );
+                })}
+              </div>
+            </ScrollArea>
+          )}
+        </Box>
       )}
-      <Button
-        type="button"
-        disabled={!selected}
-        onClick={() => {
-          if (!selected) return;
-          onSubmit(selected);
-        }}
-      >
-        Save
-      </Button>
     </div>
+  );
+}
+
+function Box({
+  heightAtom,
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<"div"> & {
+  heightAtom: PrimitiveAtom<number | undefined>;
+}) {
+  const set = useSetAtom(heightAtom);
+
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const e = ref.current;
+
+    if (!e) return;
+
+    const r = new ResizeObserver(([entry]) => {
+      const contentHeight = entry.contentRect.height;
+      set(contentHeight);
+    });
+
+    r.observe(e);
+
+    return () => {
+      r.disconnect();
+      set(undefined);
+    };
+  }, [set]);
+
+  return (
+    <div
+      {...props}
+      ref={ref}
+      className={cn("min-h-[50dvh] overflow-clip", className)}
+    />
   );
 }
 
