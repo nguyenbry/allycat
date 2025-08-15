@@ -15,6 +15,12 @@ export function usePlacesQuery(
   const [debouncedQuery, setDebouncedQuery] = useState(cleaned2);
 
   useEffect(() => {
+    if (!cleaned2) {
+      // in the case of nothing, don't debounce it because this should cause UI update as fast as possible
+      setDebouncedQuery(undefined);
+      return;
+    }
+
     const timer = setTimeout(() => {
       setDebouncedQuery(cleaned2);
     }, 750);
