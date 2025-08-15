@@ -795,7 +795,7 @@ function DrawerOrDialogContent({
           <div className="flex text-muted-foreground flex-col my-auto">
             <X className="size-10 mx-auto" />
             <span className="text-xs text-wrap text-center">
-              No results found for '{value}'
+              No results found for &apos;{value}&apos;
             </span>
           </div>
         )
