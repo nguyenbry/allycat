@@ -697,7 +697,7 @@ function LocationSelectResponsiveDrawerOrDialog({
           ref={inputRef}
           locationBias={locationBias}
           onSubmit={onSubmitWrapped}
-          className="px-4 pb-8 grow"
+          className="px-4 grow"
           inputAtom={inputAtom}
           selectedLocationFormAtom={selectedLocationFormAtom}
         />
@@ -744,26 +744,31 @@ function DrawerOrDialogContent({
       </div>
       {placesQuery.isFetching && <Loader2 className="animate-spin size-4" />}
       {places && (
-        <Box className="border border-blue-400 grow" heightAtom={heightAtom}>
+        <Box
+          className="grow min-h-[30dvh] overflow-clip relative"
+          heightAtom={heightAtom}
+        >
           {h !== undefined && (
-            <ScrollArea
-              style={{
-                height: h,
-              }}
-            >
-              <div className="grid gap-2">
-                {places.map((p) => {
-                  return (
-                    <PlaceOptionButton
-                      onClick={() => onSubmit(p)}
-                      place={p}
-                      key={p.id}
-                      isSelected={false}
-                    />
-                  );
-                })}
-              </div>
-            </ScrollArea>
+            <div className="absolute top-0 left-0 right-0">
+              <ScrollArea
+                style={{
+                  height: h,
+                }}
+              >
+                <div className="grid gap-2">
+                  {places.map((p) => {
+                    return (
+                      <PlaceOptionButton
+                        onClick={() => onSubmit(p)}
+                        place={p}
+                        key={p.id}
+                        isSelected={false}
+                      />
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            </div>
           )}
         </Box>
       )}
@@ -773,7 +778,6 @@ function DrawerOrDialogContent({
 
 function Box({
   heightAtom,
-  className,
   ...props
 }: React.ComponentPropsWithoutRef<"div"> & {
   heightAtom: PrimitiveAtom<number | undefined>;
@@ -800,13 +804,7 @@ function Box({
     };
   }, [set]);
 
-  return (
-    <div
-      {...props}
-      ref={ref}
-      className={cn("min-h-[50dvh] overflow-clip", className)}
-    />
-  );
+  return <div {...props} ref={ref} />;
 }
 
 function PlaceOptionButton({
