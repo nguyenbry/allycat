@@ -4,11 +4,25 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/joho/godotenv"
 	server "github.com/nguyen/allycat/internal/http_server"
 	"github.com/nguyen/allycat/internal/http_server/handlers"
 )
 
 func main() {
+	ge, ok := os.LookupEnv("GO_ENV")
+
+	if !ok {
+		panic("GO_ENV required")
+	}
+
+	if ge != "production" {
+		err := godotenv.Load()
+		if err != nil {
+			panic("No .env file found")
+		}
+	}
+
 	key, ok := os.LookupEnv("MAPS_API_KEY")
 
 	if !ok {
@@ -24,8 +38,6 @@ func main() {
 	if len(pw) < 5 {
 		panic("API_PW must be at least 5 characters")
 	}
-
-	fmt.Println("hash is", pw)
 
 	origin, ok := os.LookupEnv("ALLOWED_ORIGIN")
 
