@@ -42,7 +42,7 @@ import {
   useStore,
 } from "jotai";
 import { usePlacesQuery } from "./places-search-test";
-import { Bike, Car, Loader2, Map, Pencil, Plus, Trash2 } from "lucide-react";
+import { Bike, Car, Loader2, Map, Pencil, Plus, Trash2, X } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
 import { type PropsWithCn } from "../types";
 import { useMemo } from "use-memo-one";
@@ -748,6 +748,7 @@ function DrawerOrDialogContent({
     <div className={cn("flex flex-col gap-4", className)}>
       <div className="grid gap-3">
         <Input
+          aria-invalid={places && places.length === 0 ? true : false}
           ref={ref}
           type="text"
           placeholder="Search for a place"
@@ -755,36 +756,50 @@ function DrawerOrDialogContent({
           onChange={(e) => setValue(e.target.value)}
         />
       </div>
-      {placesQuery.isFetching && <Loader2 className="animate-spin size-4" />}
-      {places && (
-        <Box
-          className="grow min-h-[30dvh] overflow-clip relative"
-          heightAtom={heightAtom}
-        >
-          {h !== undefined && (
-            <div className="absolute top-0 left-0 right-0">
-              <ScrollArea
-                style={{
-                  height: h,
-                }}
-              >
-                <div className="grid gap-2">
-                  {places.map((p) => {
-                    return (
-                      <PlaceOptionButton
-                        onClick={() => onSubmit(p)}
-                        place={p}
-                        key={p.id}
-                        isSelected={false}
-                      />
-                    );
-                  })}
-                </div>
-              </ScrollArea>
-            </div>
-          )}
-        </Box>
+      {placesQuery.isFetching && (
+        <div className="flex py-4">
+          <Loader2 className="animate-spin size-6 mx-auto" />
+        </div>
       )}
+
+      {places ? (
+        places.length > 0 ? (
+          <Box
+            className="grow min-h-[30dvh] overflow-clip relative inline-flex"
+            heightAtom={heightAtom}
+          >
+            {h !== undefined && (
+              <div className="absolute top-0 left-0 right-0">
+                <ScrollArea
+                  style={{
+                    height: h,
+                  }}
+                >
+                  <div className="grid gap-2">
+                    {places.map((p) => {
+                      return (
+                        <PlaceOptionButton
+                          onClick={() => onSubmit(p)}
+                          place={p}
+                          key={p.id}
+                          isSelected={false}
+                        />
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
+          </Box>
+        ) : (
+          <div className="flex text-muted-foreground flex-col my-auto">
+            <X className="size-10 mx-auto" />
+            <span className="text-xs text-wrap text-center">
+              No results found for '{value}'
+            </span>
+          </div>
+        )
+      ) : undefined}
     </div>
   );
 }
