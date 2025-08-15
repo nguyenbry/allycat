@@ -32,7 +32,7 @@ import {
 } from "@/fetcher/fetchers";
 import {
   atom,
-  type createStore,
+  createStore,
   type ExtractAtomValue,
   type PrimitiveAtom,
   Provider,
@@ -52,7 +52,7 @@ import { Badge } from "../ui/badge";
 import { useStore as useZtore } from "zustand";
 import { passwordStore } from "@/stores/password-store";
 import * as R from "remeda";
-import { atomWithReset, RESET } from "jotai/utils";
+import { atomWithReset, RESET, useHydrateAtoms } from "jotai/utils";
 
 type OmitProps<
   TComponent extends
@@ -100,8 +100,31 @@ function PasswordInput() {
   );
 }
 
-function TSPFormInner() {
+function SetLocationBiasButton() {
   const [bias, setBias] = useAtom(locationBiasAtom);
+  const outerStore = useStore();
+  const [s] = React.useState(() => createStore());
+
+  // this one should be open first
+  useHydrateAtoms([[openAtom, true]], { store: s });
+
+  return (
+    <Provider store={s}>
+      {/* allow the bias form to handle its own state, but the trigger needs the outer scope  */}
+      <LocationSelectResponsiveDrawerOrDialog
+        locationBias={bias?.location}
+        title="Location Bias"
+        description="Choose a common landmark around your route. Subsequent searches will prioritize results near this location."
+        onSubmit={setBias}
+      >
+        <SetBiasTrigger jotaiStore={outerStore} />
+      </LocationSelectResponsiveDrawerOrDialog>
+    </Provider>
+  );
+}
+
+function TSPFormInner() {
+  const bias = useAtomValue(locationBiasAtom);
   const setOrigin = useSetAtom(originAtom);
   const setDest = useSetAtom(destinationAtom);
 
@@ -115,17 +138,7 @@ function TSPFormInner() {
         <div className="mt-auto flex flex-col gap-3">
           <PasswordInput />
           <div className="flex flex-col lg:grid lg:grid-cols-2 gap-2">
-            <Provider>
-              {/* allow the bias form to handle its own state, but the trigger needs the outer scope  */}
-              <LocationSelectResponsiveDrawerOrDialog
-                locationBias={bias?.location}
-                title="Location Bias"
-                description="Search for a location. Click save when you're done."
-                onSubmit={setBias}
-              >
-                <SetBiasTrigger jotaiStore={outerStore} />
-              </LocationSelectResponsiveDrawerOrDialog>
-            </Provider>
+            <SetLocationBiasButton />
 
             <Provider>
               {/* allow the bias form to handle its own state, but the trigger needs the outer scope  */}
