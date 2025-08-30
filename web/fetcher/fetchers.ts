@@ -223,22 +223,29 @@ const routesForDestinationSchema = z.object({
   destination: z.string().min(1),
   car: routeSchema.optional(),
   bike: routeSchema.optional(),
+  method: z.enum(["tsp"]).optional(),
 });
 
 export type routesPerDestinationSchema = z.infer<
   typeof routesForDestinationSchema
 >;
 
+export type OptimizePlace = {
+  id: string;
+  longitude: number;
+  latitude: number;
+};
+
 export const optimizeRoute = async (payload: {
-  origin: string;
-  stops: string[];
-  destination: string | undefined;
+  origin: OptimizePlace;
+  stops: [OptimizePlace, OptimizePlace, ...OptimizePlace[]];
+  destination: OptimizePlace | undefined;
 }) => {
   const res = await POST(`/places/optimize`, {
     body: payload satisfies {
-      origin: string;
-      stops: string[];
-      destination: string | undefined;
+      origin: OptimizePlace;
+      stops: [OptimizePlace, OptimizePlace, ...OptimizePlace[]];
+      destination: OptimizePlace | undefined;
     },
   });
 

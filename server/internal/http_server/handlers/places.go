@@ -1,14 +1,16 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/nguyen/allycat/internal/places"
+	"github.com/nguyen/allycat/internal/tsp"
 )
-
-var testStr string = `{"start":"ChIJMyz2gkXGxokRcCqrYbUuia4","stops":["ChIJ76GvGOvGxokR_qrOIBats84","Ei80MDAwIEJhbHRpbW9yZSBBdmUsIFBoaWxhZGVscGhpYSwgUEEgMTkxMDQsIFVTQSIxEi8KFAoSCSEZCX32xsaJEUD0EsV6XxKxEKAfKhQKEglDzC0av8bGiRH86g2jblqjdA","ChIJXSJY2vfGxokRSeHsSBbDiGI","ChIJpZVajITHxokRZT6VDp4tvtk","Ei8yNjAwIFcgRmxldGNoZXIgU3QsIFBoaWxhZGVscGhpYSwgUEEgMTkxMzIsIFVTQSIxEi8KFAoSCQkYPhPtx8aJEbzdT0DCUQ4UEKgUKhQKEgld1z_HksfGiREWTRpp3WzGpw","ChIJ5TjjILHHxokRsUNYkTmxXGg","ChIJZxBULUDGxokRj3Dr_aK3YuQ","ChIJ9Sdt-zHGxokRad5acsk-ifo"],"end":"ChIJuTEqMEnGxokRbpR8XPtsVQs"}`
 
 type PlacesHandler struct {
 	api *places.PlacesApi
@@ -40,7 +42,9 @@ func (h PlacesHandler) HandleTextSearch(w http.ResponseWriter, r *http.Request) 
 
 	fmt.Println("Received text search query:", reqBody.Query)
 
-	res, err := h.api.TextSearch(reqBody)
+	googleMethodContext, cancel := context.WithTimeout(r.Context(), time.Second*2)
+	defer cancel()
+	res, err := h.api.TextSearch(googleMethodContext, reqBody)
 
 	if err != nil {
 		WriteJSONResponse(w, NewResponse().WithMessage(fmt.Sprintf("Error searching places: %v", err)), http.StatusInternalServerError)
@@ -49,42 +53,146 @@ func (h PlacesHandler) HandleTextSearch(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+type optimizeRoutePayloadPlace struct {
+	Id   string   `json:"id"`
+	Long *float64 `json:"longitude"` // using * because 0 is a valid value
+	Lat  *float64 `json:"latitude"`
+}
+
+func (o optimizeRoutePayloadPlace) validate() error {
+	if o.Id == "" {
+		return errors.New("'id' is required")
+	}
+
+	if o.Lat == nil {
+		return errors.New("'latitude' is required")
+	}
+
+	if o.Long == nil {
+		return errors.New("'longitude' is required")
+	}
+
+	return nil
+}
+
 func (h PlacesHandler) HandleOptimizeRoute(w http.ResponseWriter, r *http.Request) {
-	var reqBody struct {
-		Start string   `json:"origin"`
-		Stops []string `json:"stops"`
-		End   *string  `json:"destination"`
+	var b struct {
+		Start optimizeRoutePayloadPlace   `json:"origin"`
+		Stops []optimizeRoutePayloadPlace `json:"stops"`
+		End   *optimizeRoutePayloadPlace  `json:"destination"`
 	}
 
 	// if err := json.Unmarshal([]byte(testStr), &reqBody); err != nil {
 	// 	writeJSONResponse(w, newResponse().message("Invalid payload"), http.StatusBadRequest)
 	// 	return
 	// }
-	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
 		WriteJSONResponse(w, NewResponse().WithMessage("Invalid payload"), http.StatusBadRequest)
 		return
-	} else if reqBody.Start == "" {
-		WriteJSONResponse(w, NewResponse().WithMessage("Start location is required"), http.StatusBadRequest)
+	}
+
+	if err := b.Start.validate(); err != nil {
+		WriteJSONResponse(w, NewResponse().WithMessage(fmt.Sprintf("start %s", err.Error())), http.StatusBadRequest)
 		return
-	} else if len(reqBody.Stops) < 2 {
+	}
+
+	if b.End != nil {
+		if err := b.End.validate(); err != nil {
+			WriteJSONResponse(w, NewResponse().WithMessage(fmt.Sprintf("end %s", err.Error())), http.StatusBadRequest)
+			return
+		}
+	}
+
+	for i, s := range b.Stops {
+		if err := s.validate(); err != nil {
+			WriteJSONResponse(w, NewResponse().WithMessage(fmt.Sprintf("stop at index %d %s", i, err.Error())), http.StatusBadRequest)
+			return
+		}
+	}
+
+	if len(b.Stops) < 2 {
 		WriteJSONResponse(w, NewResponse().WithMessage("At least two stops are required"), http.StatusBadRequest)
 		return
-	} else if reqBody.End != nil && *reqBody.End == "" {
-		WriteJSONResponse(w, NewResponse().WithMessage("Destination is empty"), http.StatusBadRequest)
+	}
+
+	builder := places.
+		NewOptimizeRoutePayloadBuilder().
+		WithStart(b.Start.Id, *b.Start.Lat, *b.Start.Long)
+
+	if b.End != nil {
+		builder = builder.WithEnd(b.End.Id, *b.Start.Lat, *b.End.Long)
+	}
+
+	for _, s := range b.Stops {
+		builder = builder.AddStop(s.Id, *s.Lat, *s.Long)
+	}
+
+	payload, err := builder.Build()
+
+	if err != nil {
+		WriteJSONResponse(w, NewResponse().WithMessage(err.Error()), http.StatusBadRequest)
 		return
 	}
 
-	payload := places.
-		NewOptimizeRoutePayloadBuilder().
-		WithStart(reqBody.Start).
-		WithStops(reqBody.Stops).WithEnd(reqBody.End)
+	googleMethodContext, cancel := context.WithTimeout(r.Context(), time.Second*3)
+	defer cancel()
 
-	routes, err := h.api.OptimizeRoute(payload)
-
-	if err != nil {
-		fmt.Printf("error occurred during 'OptimizeRoute': %v\n", err.Error())
-		writeServerError(w)
-	} else {
-		WriteJSONResponse(w, NewResponse().WithData(routes), http.StatusOK)
+	type apiRes struct {
+		Result []places.OptimalRoute
+		Err    error
 	}
+	ch := make(chan apiRes, 1)
+	go func() {
+		routes, err := h.api.OptimizeRoute(googleMethodContext, payload)
+		ch <- apiRes{routes, err}
+	}()
+
+	tspRoute := func() places.OptimalRoute {
+		// test manual tsp
+		tb := tsp.NewTspRouteBuilder()
+		tb = tb.WithStart(b.Start.Id, *b.Start.Lat, *b.Start.Long)
+
+		if b.End != nil {
+			tb = tb.WithEnd(b.End.Id, *b.End.Lat, *b.End.Long)
+		}
+
+		for _, s := range b.Stops {
+			tb = tb.AddStop(s.Id, *s.Lat, *s.Long)
+		}
+
+		or := tb.Build().OptimalRoutes()
+
+		stopIds := make([]string, 0, len(or.Stops))
+
+		for _, s := range or.Stops {
+			stopIds = append(stopIds, s.Id)
+		}
+
+		return places.OptimalRoute{
+			Method: "tsp",
+			End:    or.End.Id,
+			BikeRoute: &places.OptimizeRouteResponse{
+				Meters:          int64(or.Meters),
+				DisplayDistance: fmt.Sprintf("%.1f mi", or.Meters/1609.344),
+				DisplayDuration: "idk2",
+				Order:           stopIds,
+			},
+			CarRoute: nil,
+		}
+	}()
+
+	allRoutes := []places.OptimalRoute{tspRoute}
+
+	select {
+	case result := <-ch:
+		if err := result.Err; err != nil {
+			fmt.Printf("API failed, using TSP fallback: %v", result.Err)
+		} else {
+			allRoutes = append(allRoutes, result.Result...)
+		}
+	case <-googleMethodContext.Done():
+		fmt.Println("API calc timed out 😔")
+	}
+
+	WriteJSONResponse(w, NewResponse().WithData(allRoutes), http.StatusOK)
 }

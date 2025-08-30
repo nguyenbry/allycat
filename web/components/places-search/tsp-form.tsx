@@ -29,6 +29,7 @@ import {
   type routesPerDestinationSchema,
   type placeSchema,
   _testPlaces,
+  OptimizePlace,
 } from "@/fetcher/fetchers";
 import {
   atom,
@@ -73,11 +74,257 @@ const queryAtomAtom = atom((get) => {
   };
 });
 
-const routeAtom = atom<{
+type Route = {
   stops: placeSchema[];
   destination: placeSchema | undefined;
   origin: placeSchema | undefined;
-}>({
+};
+
+const testRoute: Route = {
+  stops: [
+    {
+      id: "ChIJcRzlRgbIxokR1yUtRPv8u4I",
+      formattedAddress: "2400 N 11th St, Philadelphia, PA 19133, USA",
+      googleMapsUri:
+        "https://maps.google.com/?cid=9420401201686324695&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+      displayName: {
+        text: "2400 N 11th St",
+      },
+      googleMapsLinks: {
+        directionsUri:
+          "https://www.google.com/maps/dir//''/data=!4m7!4m6!1m1!4e2!1m2!1m1!1s0x89c6c80646e51c71:0x82bbfcfb442d25d7!3e0?g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+      },
+      location: {
+        longitude: -75.1506503,
+        latitude: 39.9891357,
+      },
+    },
+    {
+      id: "ChIJkTEFDHy4xokR3y81rj83fmI",
+      formattedAddress: "4208-52 Ridge Ave, Philadelphia, PA 19129, USA",
+      googleMapsUri:
+        "https://maps.google.com/?cid=7097170809427668959&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+      displayName: {
+        text: "Inn Yard Park",
+      },
+      googleMapsLinks: {
+        directionsUri:
+          "https://www.google.com/maps/dir//''/data=!4m7!4m6!1m1!4e2!1m2!1m1!1s0x89c6b87c0c053191:0x627e373fae352fdf!3e0?g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+      },
+      location: {
+        longitude: -75.1953324,
+        latitude: 40.0090982,
+      },
+    },
+    {
+      id: "ChIJ38WZZl3JxokRvVzKlOrKDOw",
+      formattedAddress: "3176 Richmond St, Philadelphia, PA 19134, USA",
+      googleMapsUri:
+        "https://maps.google.com/?cid=17009193001538968765&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+      displayName: {
+        text: "Tshatshke Jewelry Studio",
+      },
+      googleMapsLinks: {
+        directionsUri:
+          "https://www.google.com/maps/dir//''/data=!4m7!4m6!1m1!4e2!1m2!1m1!1s0x89c6c95d6699c5df:0xec0ccaea94ca5cbd!3e0?g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+      },
+      location: {
+        longitude: -75.1019638,
+        latitude: 39.9829054,
+      },
+    },
+    {
+      id: "ChIJHxQlmGTIxokRVN3mcBkfOIk",
+      formattedAddress: "700 N 2nd St, Philadelphia, PA 19123, USA",
+      googleMapsUri:
+        "https://maps.google.com/?cid=9887687176020745556&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+      displayName: {
+        text: "The 700",
+      },
+      googleMapsLinks: {
+        directionsUri:
+          "https://www.google.com/maps/dir//''/data=!4m7!4m6!1m1!4e2!1m2!1m1!1s0x89c6c8649825141f:0x89381f1970e6dd54!3e0?g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+      },
+      location: {
+        longitude: -75.1413974,
+        latitude: 39.9620591,
+      },
+    },
+    {
+      id: "ChIJ1waJqZzIxokR49XlZ1tqfnw",
+      formattedAddress: "422 Walnut St, Philadelphia, PA 19106, USA",
+      googleMapsUri:
+        "https://maps.google.com/?cid=8970724448586290659&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+      displayName: {
+        text: "Rose Garden",
+      },
+      googleMapsLinks: {
+        directionsUri:
+          "https://www.google.com/maps/dir//''/data=!4m7!4m6!1m1!4e2!1m2!1m1!1s0x89c6c89ca98906d7:0x7c7e6a5b67e5d5e3!3e0?g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+      },
+      location: {
+        longitude: -75.1488246,
+        latitude: 39.94694,
+      },
+    },
+    {
+      id: "ChIJb6_MyifGxokRpoGQe70D8ek",
+      formattedAddress: "235 S 10th St, Philadelphia, PA 19107, USA",
+      googleMapsUri:
+        "https://maps.google.com/?cid=16857258992581247398&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+      displayName: {
+        text: "Locust Bar/Club",
+      },
+      googleMapsLinks: {
+        directionsUri:
+          "https://www.google.com/maps/dir//''/data=!4m7!4m6!1m1!4e2!1m2!1m1!1s0x89c6c627caccaf6f:0xe9f103bd7b9081a6!3e0?g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+      },
+      location: {
+        longitude: -75.1575275,
+        latitude: 39.9472387,
+      },
+    },
+    {
+      id: "ChIJqWIkSA_GxokRc4T8-pBAwbU",
+      formattedAddress: "1300 McKean St, Philadelphia, PA 19148, USA",
+      googleMapsUri:
+        "https://maps.google.com/?cid=13096820182800434291&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+      displayName: {
+        text: "1300 McKean St",
+      },
+      googleMapsLinks: {
+        directionsUri:
+          "https://www.google.com/maps/dir//''/data=!4m7!4m6!1m1!4e2!1m2!1m1!1s0x89c6c60f482462a9:0xb5c14090fafc8473!3e0?g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+      },
+      location: {
+        longitude: -75.16747749999999,
+        latitude: 39.925222399999996,
+      },
+    },
+    {
+      id: "ChIJS_Tsp27GxokRNn46MDX2rrM",
+      formattedAddress: "2300 Wharton St, Philadelphia, PA 19146, USA",
+      googleMapsUri:
+        "https://maps.google.com/?cid=12947556687039594038&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+      displayName: {
+        text: "Wharton Square Playground",
+      },
+      googleMapsLinks: {
+        directionsUri:
+          "https://www.google.com/maps/dir//''/data=!4m7!4m6!1m1!4e2!1m2!1m1!1s0x89c6c66ea7ecf44b:0xb3aef635303a7e36!3e0?g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+      },
+      location: {
+        longitude: -75.1837832,
+        latitude: 39.9360454,
+      },
+    },
+    {
+      id: "ChIJIQ0RF0fGxokRRBPTCYK7s-o",
+      formattedAddress: "Fitler Square, Philadelphia, PA, USA",
+      googleMapsUri:
+        "https://maps.google.com/?cid=16912067192891315012&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+      displayName: {
+        text: "Fitler Square",
+      },
+      googleMapsLinks: {
+        directionsUri:
+          "https://www.google.com/maps/dir//''/data=!4m7!4m6!1m1!4e2!1m2!1m1!1s0x89c6c64717110d21:0xeab3bb8209d31344!3e0?g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+      },
+      location: {
+        longitude: -75.1793444,
+        latitude: 39.9474746,
+      },
+    },
+    {
+      id: "ChIJrcsBU8vHxokR4FXP2BplJks",
+      formattedAddress:
+        "2025 Benjamin Franklin Pkwy, Philadelphia, PA 19130, USA",
+      googleMapsUri:
+        "https://maps.google.com/?cid=5415126767940621792&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+      displayName: {
+        text: "Barnes Foundation",
+      },
+      googleMapsLinks: {
+        directionsUri:
+          "https://www.google.com/maps/dir//''/data=!4m7!4m6!1m1!4e2!1m2!1m1!1s0x89c6c7cb5301cbad:0x4b26651ad8cf55e0!3e0?g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+      },
+      location: {
+        longitude: -75.17280749999999,
+        latitude: 39.9606433,
+      },
+    },
+    {
+      id: "ChIJT1ozjUvHxokR3LneNPIS4qE",
+      formattedAddress: "300-50 Saunders Ave, Philadelphia, PA 19104, USA",
+      googleMapsUri:
+        "https://maps.google.com/?cid=11664906816321403356&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+      displayName: {
+        text: "Saunders Park",
+      },
+      googleMapsLinks: {
+        directionsUri:
+          "https://www.google.com/maps/dir//''/data=!4m7!4m6!1m1!4e2!1m2!1m1!1s0x89c6c74b8d335a4f:0xa1e212f234deb9dc!3e0?g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+      },
+      location: {
+        longitude: -75.19938719999999,
+        latitude: 39.9600151,
+      },
+    },
+    {
+      id: "ChIJbyyRSfLGxokRDJARJE7eV9o",
+      formattedAddress: "4300-4398 Baltimore Ave, Philadelphia, PA 19104, USA",
+      googleMapsUri:
+        "https://maps.google.com/?cid=15733288250436063244&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+      displayName: {
+        text: "Clark Park",
+      },
+      googleMapsLinks: {
+        directionsUri:
+          "https://www.google.com/maps/dir//''/data=!4m7!4m6!1m1!4e2!1m2!1m1!1s0x89c6c6f249912c6f:0xda57de4e2411900c!3e0?g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+      },
+      location: {
+        longitude: -75.2104142,
+        latitude: 39.9488973,
+      },
+    },
+  ],
+  destination: {
+    id: "ChIJc7SgtIvGxokRPBKj0H0XXPQ",
+    formattedAddress: "3600 Grays Ferry Ave, Philadelphia, PA 19146, USA",
+    googleMapsUri:
+      "https://maps.google.com/?cid=17607974472250495548&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+    displayName: {
+      text: "Grays Ferry Crescent Skatepark",
+    },
+    googleMapsLinks: {
+      directionsUri:
+        "https://www.google.com/maps/dir//''/data=!4m7!4m6!1m1!4e2!1m2!1m1!1s0x89c6c68bb4a0b473:0xf45c177dd0a3123c!3e0?g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+    },
+    location: {
+      longitude: -75.20420159999999,
+      latitude: 39.9409798,
+    },
+  },
+  origin: {
+    id: "ChIJmZ0KYn_IxokRIBmPHZq5kPc",
+    formattedAddress: "1000-02 Spring Garden St, Philadelphia, PA 19123, USA",
+    googleMapsUri:
+      "https://maps.google.com/?cid=17838962195586554144&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+    displayName: {
+      text: "1000-02 Spring Garden St",
+    },
+    googleMapsLinks: {
+      directionsUri:
+        "https://www.google.com/maps/dir//''/data=!4m7!4m6!1m1!4e2!1m2!1m1!1s0x89c6c87f620a9d99:0xf790b99a1d8f1920!3e0?g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+    },
+    location: {
+      longitude: -75.1545378,
+      latitude: 39.9614429,
+    },
+  },
+};
+
+const routeAtom = atom<Route>({
   stops: [],
   destination: undefined,
   origin: undefined,
@@ -186,16 +433,25 @@ const queryControllerAtomAtom = atom((get) => {
   const queryControllerAtom = atom<{
     enabled: boolean;
     payload: {
-      stops: string[];
-      destination: string | undefined;
-      origin: string;
+      stops: OptimizePlace[];
+      destination: OptimizePlace | undefined;
+      origin: OptimizePlace;
     };
   }>({
     enabled: false,
     payload: {
-      origin: route.origin.id,
-      destination: route.destination?.id,
-      stops: route.stops.map((x) => x.id),
+      origin: {
+        id: route.origin.id,
+        ...route.origin.location,
+      } satisfies OptimizePlace,
+      destination: route.destination && {
+        id: route.destination.id,
+        ...route.destination.location,
+      },
+      stops: route.stops.map((x) => ({
+        id: x.id,
+        ...x.location,
+      })),
     },
   });
   return queryControllerAtom;
@@ -219,6 +475,10 @@ function CalculatedRouteArea() {
   );
 }
 
+function minLen2<T>(arr: T[]): arr is [T, T, ...T[]] {
+  return arr.length > 1;
+}
+
 function CalculatedRoutesArea({
   queryControllerAtom,
 }: {
@@ -228,12 +488,24 @@ function CalculatedRoutesArea({
 }) {
   const { enabled, payload } = useAtomValue(queryControllerAtom);
 
+  const canFetch = minLen2(payload.stops);
+
   const query = useQuery({
     queryKey: ["tsp", payload],
-    enabled,
+    enabled: enabled && canFetch,
     // expensive calculation
     staleTime: Infinity,
-    queryFn: () => optimizeRoute(payload),
+    queryFn: () => {
+      if (minLen2(payload.stops)) {
+        return optimizeRoute({
+          stops: payload.stops,
+          destination: payload.destination,
+          origin: payload.origin,
+        });
+      } else {
+        throw new Error("BUG, should properly enable the query when ready");
+      }
+    },
   });
 
   const perDestinationRoutes = query.data;
@@ -258,7 +530,7 @@ function CalculatedRoutesArea({
 }
 
 function RoutesForDestination({
-  route: { destination, bike, car },
+  route: { destination, bike, car, method },
 }: {
   route: routesPerDestinationSchema;
 }) {
@@ -276,7 +548,12 @@ function RoutesForDestination({
   if (!d) throw new Error("what happened to the destination?");
 
   return (
-    <div className="rounded-md border p-3 bg-background flex flex-col gap-2">
+    <div
+      className={cn(
+        "rounded-md border p-3 bg-background flex flex-col gap-2",
+        method === "tsp" && "border-emerald-500"
+      )}
+    >
       <div className="flex flex-col items-start">
         <span className="tracking-tight text-sm font-bold">
           End: {d.displayName.text}

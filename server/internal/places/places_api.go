@@ -41,8 +41,8 @@ func NewPlacesApi(apiKey string) (*PlacesApi, error) {
 	}, nil
 }
 
-func (p *PlacesApi) buildRequest(method string, url string, body io.Reader) (*http.Request, error) {
-	r, err := http.NewRequest(method, url, body)
+func (p *PlacesApi) buildRequest(ctx context.Context, method string, url string, body io.Reader) (*http.Request, error) {
+	r, err := http.NewRequestWithContext(ctx, method, url, body)
 
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %w", err)
@@ -55,7 +55,7 @@ func (p *PlacesApi) buildRequest(method string, url string, body io.Reader) (*ht
 	return r, nil
 }
 
-func (p *PlacesApi) TextSearch(opts TextSearchOptions) ([]place, error) {
+func (p *PlacesApi) TextSearch(ctx context.Context, opts TextSearchOptions) ([]place, error) {
 
 	fmt.Println(100)
 	type locationBias struct {
@@ -79,8 +79,6 @@ func (p *PlacesApi) TextSearch(opts TextSearchOptions) ([]place, error) {
 		return &out
 	}
 
-	fmt.Println(103)
-
 	var body struct {
 		Query        string        `json:"textQuery"`
 		LocationBias *locationBias `json:"locationBias,omitempty"`
@@ -100,7 +98,7 @@ func (p *PlacesApi) TextSearch(opts TextSearchOptions) ([]place, error) {
 		return nil, err
 	}
 
-	req, err := p.buildRequest("POST", "https://places.googleapis.com/v1/places:searchText", bytes.NewBuffer(jsonData))
+	req, err := p.buildRequest(ctx, "POST", "https://places.googleapis.com/v1/places:searchText", bytes.NewBuffer(jsonData))
 
 	if err != nil {
 		return nil, err
@@ -155,29 +153,66 @@ func (p *PlacesApi) TextSearch(opts TextSearchOptions) ([]place, error) {
 	return respData.Places, nil
 }
 
+type optimizeRouteLocation struct {
+	id   string
+	long float64
+	lat  float64
+}
+
 type optimizeRouteOptions struct {
-	start string
-	stops []string
-	end   *string
+	start optimizeRouteLocation
+	stops []optimizeRouteLocation
+	end   *optimizeRouteLocation
 }
 
-func NewOptimizeRoutePayloadBuilder() optimizeRouteOptions {
-	return optimizeRouteOptions{}
+type optimizeRouteOptionsBuilder struct {
+	options optimizeRouteOptions
 }
 
-func (b optimizeRouteOptions) WithStart(start string) optimizeRouteOptions {
-	b.start = start
+func NewOptimizeRoutePayloadBuilder() optimizeRouteOptionsBuilder {
+	return optimizeRouteOptionsBuilder{optimizeRouteOptions{}}
+}
+
+func (b optimizeRouteOptionsBuilder) WithStart(id string, lat, long float64) optimizeRouteOptionsBuilder {
+	b.options.start = optimizeRouteLocation{id, long, lat}
 	return b
 }
 
-func (b optimizeRouteOptions) WithStops(stops []string) optimizeRouteOptions {
-	b.stops = stops
+func (b optimizeRouteOptionsBuilder) AddStop(id string, lat, long float64) optimizeRouteOptionsBuilder {
+	b.options.stops = append(b.options.stops, optimizeRouteLocation{id, long, lat})
 	return b
 }
 
-func (b optimizeRouteOptions) WithEnd(end *string) optimizeRouteOptions {
-	b.end = end
+func (b optimizeRouteOptionsBuilder) WithEnd(id string, lat, long float64) optimizeRouteOptionsBuilder {
+	b.options.end = &optimizeRouteLocation{id, long, lat}
 	return b
+}
+
+func (b optimizeRouteOptionsBuilder) Build() (optimizeRouteOptions, error) {
+	s := b.options.start
+
+	if s.id == "" {
+		return optimizeRouteOptions{}, errors.New("start id required")
+	}
+
+	e := b.options.end
+
+	if e != nil && e.id == "" {
+		return optimizeRouteOptions{}, errors.New("end id is required")
+	}
+
+	for i, s := range b.options.stops {
+		if s.id == "" {
+			return optimizeRouteOptions{}, fmt.Errorf("stop at index %d: id is required", i)
+		}
+	}
+
+	if len(b.options.stops) < 2 {
+		return optimizeRouteOptions{}, errors.New("at least two stops are required")
+	}
+
+	return b.options, nil
+
 }
 
 type optimizePayloadPlace struct {
@@ -208,23 +243,23 @@ func optimizePayloadFromOptions(opts optimizeRouteOptions) ([]optimizePayload, e
 			p := optimizePayload{
 				Optimize: "true",
 				Start: optimizePayloadPlace{
-					Id: opts.start,
+					Id: opts.start.id,
 				},
 				End: optimizePayloadPlace{
-					Id: tryEnd,
+					Id: tryEnd.id,
 				},
 				Stops: func() []optimizePayloadPlace {
 					out := make([]optimizePayloadPlace, 0, len(opts.stops)-1)
 
 					for _, stop := range opts.stops[:i] {
 						out = append(out, optimizePayloadPlace{
-							Id: stop,
+							Id: stop.id,
 						})
 					}
 
 					for _, stop := range opts.stops[i+1:] {
 						out = append(out, optimizePayloadPlace{
-							Id: stop,
+							Id: stop.id,
 						})
 					}
 
@@ -238,26 +273,20 @@ func optimizePayloadFromOptions(opts optimizeRouteOptions) ([]optimizePayload, e
 		return out, nil
 
 	} else {
-		end := *opts.end
-
-		if end == "" {
-			return nil, errors.New("end cannot be empty if provided")
-		}
-
 		return []optimizePayload{{
 			Optimize: "true",
 			Start: optimizePayloadPlace{
-				Id: opts.start,
+				Id: opts.start.id,
 			},
 			End: optimizePayloadPlace{
-				Id: end,
+				Id: opts.end.id,
 			},
 			Stops: func() []optimizePayloadPlace {
 				out := make([]optimizePayloadPlace, len(opts.stops))
 
 				for i, stop := range opts.stops {
 					out[i] = optimizePayloadPlace{
-						Id: stop,
+						Id: stop.id,
 					}
 				}
 				return out
@@ -282,24 +311,21 @@ func (p optimizePayload) asBike() optimizePayload {
 	return p
 }
 
-type Out struct {
+type OptimalRoute struct {
+	Method    string                 `json:"method,omitempty"`
 	End       string                 `json:"destination"`
-	BikeRoute *optimizeRouteResponse `json:"bike,omitempty"`
-	CarRoute  *optimizeRouteResponse `json:"car,omitempty"`
+	BikeRoute *OptimizeRouteResponse `json:"bike,omitempty"`
+	CarRoute  *OptimizeRouteResponse `json:"car,omitempty"`
 }
 
-func (p *PlacesApi) OptimizeRoute(opts optimizeRouteOptions) ([]Out, error) {
-	// a valid route is made of a start, at least two stops,
-	// and an optional end
-	if opts.start == "" {
-		return nil, errors.New("start location is required")
-	} else if len(opts.stops) < 2 {
-		return nil, errors.New("at least two stops are required")
-	} else if opts.end != nil && *opts.end == "" {
-		return nil, errors.New("end location cannot be empty if provided")
+func (p *PlacesApi) OptimizeRoute(ctx context.Context, opts optimizeRouteOptions) ([]OptimalRoute, error) {
+	fmt.Printf("Optimizing with start: %s\n", opts.start.id)
+	for i, x := range opts.stops {
+		fmt.Printf("Optimizing with %d. %s\n", i, x.id)
 	}
-
-	fmt.Printf("Optimizing with: %+v\n", opts)
+	if opts.end != nil {
+		fmt.Printf("Optimizing with end: %s\n", opts.end.id)
+	}
 
 	nakedBodies, err := optimizePayloadFromOptions(opts)
 
@@ -321,14 +347,14 @@ func (p *PlacesApi) OptimizeRoute(opts optimizeRouteOptions) ([]Out, error) {
 	fmt.Println("len100", len(bikeBodies), len(carBodies))
 
 	var bikeMu sync.Mutex
-	var bikeResponses []optimizeRouteResponse
+	var bikeResponses []OptimizeRouteResponse
 	bikeEg, _ := errgroup.WithContext(context.Background())
 
 	var carMu sync.Mutex
-	var carResponses []optimizeRouteResponse
+	var carResponses []OptimizeRouteResponse
 	carEg, _ := errgroup.WithContext(context.Background())
 
-	doReq := func(body optimizePayload) ([]optimizeRouteResponse, error) {
+	doReq := func(body optimizePayload) ([]OptimizeRouteResponse, error) {
 		jsonData, err := json.Marshal(body)
 
 		// fmt.Println("Request body:", string(jsonData))
@@ -337,7 +363,7 @@ func (p *PlacesApi) OptimizeRoute(opts optimizeRouteOptions) ([]Out, error) {
 			return nil, fmt.Errorf("marshaling body: %w", err)
 		}
 
-		req, err := p.buildRequest("POST", "https://routes.googleapis.com/directions/v2:computeRoutes", bytes.NewBuffer(jsonData))
+		req, err := p.buildRequest(ctx, "POST", "https://routes.googleapis.com/directions/v2:computeRoutes", bytes.NewBuffer(jsonData))
 
 		if err != nil {
 			return nil, fmt.Errorf("building req: %w", err)
@@ -356,6 +382,8 @@ func (p *PlacesApi) OptimizeRoute(opts optimizeRouteOptions) ([]Out, error) {
 
 		if err != nil {
 			return nil, fmt.Errorf(".Do: %w", err)
+		} else {
+			defer drainAndClose(resp.Body)
 		}
 
 		if resp.StatusCode != http.StatusOK {
@@ -396,7 +424,7 @@ func (p *PlacesApi) OptimizeRoute(opts optimizeRouteOptions) ([]Out, error) {
 			fmt.Println("yay4")
 		}
 
-		var routes []optimizeRouteResponse
+		var routes []OptimizeRouteResponse
 
 		for _, route := range respData.Routes {
 			// map route to ids
@@ -414,7 +442,7 @@ func (p *PlacesApi) OptimizeRoute(opts optimizeRouteOptions) ([]Out, error) {
 				return nil, fmt.Errorf("expected len %d but got %d", len(order), len(body.Stops)+1)
 			}
 
-			routes = append(routes, optimizeRouteResponse{
+			routes = append(routes, OptimizeRouteResponse{
 				Order:           order,
 				Meters:          route.Meters,
 				end:             body.End.Id,
@@ -472,7 +500,7 @@ func (p *PlacesApi) OptimizeRoute(opts optimizeRouteOptions) ([]Out, error) {
 		return nil, err
 	}
 
-	bikeKeyByEnd := make(map[string][]optimizeRouteResponse)
+	bikeKeyByEnd := make(map[string][]OptimizeRouteResponse)
 
 	for _, x := range bikeResponses {
 		key := x.end
@@ -480,7 +508,7 @@ func (p *PlacesApi) OptimizeRoute(opts optimizeRouteOptions) ([]Out, error) {
 		bikeKeyByEnd[key] = append(bikeKeyByEnd[key], x)
 	}
 
-	carKeyByEnd := make(map[string][]optimizeRouteResponse)
+	carKeyByEnd := make(map[string][]OptimizeRouteResponse)
 
 	for _, x := range carResponses {
 		key := x.end
@@ -488,7 +516,7 @@ func (p *PlacesApi) OptimizeRoute(opts optimizeRouteOptions) ([]Out, error) {
 		carKeyByEnd[key] = append(carKeyByEnd[key], x)
 	}
 
-	shortestByEnd := make(map[string]Out)
+	shortestByEnd := make(map[string]OptimalRoute)
 
 	for endId, routes := range bikeKeyByEnd {
 		// all routes ending at endId
@@ -523,7 +551,7 @@ func (p *PlacesApi) OptimizeRoute(opts optimizeRouteOptions) ([]Out, error) {
 		shortestByEnd[endId] = x
 	}
 
-	out := make([]Out, 0, len(shortestByEnd))
+	out := make([]OptimalRoute, 0, len(shortestByEnd))
 	for _, x := range shortestByEnd {
 		out = append(out, x)
 	}
@@ -531,7 +559,7 @@ func (p *PlacesApi) OptimizeRoute(opts optimizeRouteOptions) ([]Out, error) {
 	return out, nil
 }
 
-type optimizeRouteResponse struct {
+type OptimizeRouteResponse struct {
 	Order           []string `json:"order"`
 	Meters          int64    `json:"meters"`
 	DisplayDistance string   `json:"displayDistance"`
