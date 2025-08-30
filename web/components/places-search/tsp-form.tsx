@@ -29,7 +29,7 @@ import {
   type routesPerDestinationSchema,
   type placeSchema,
   _testPlaces,
-  OptimizePlace,
+  type OptimizePlace,
 } from "@/fetcher/fetchers";
 import {
   atom,
