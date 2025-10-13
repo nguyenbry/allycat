@@ -12,7 +12,7 @@ const compat = new FlatCompat({
 
 export default tseslint.config(
   {
-    ignores: [".next"],
+    ignores: [".next", "next-env.d.ts"],
   },
   ...compat.extends("next/core-web-vitals"),
   {
@@ -30,14 +30,17 @@ export default tseslint.config(
         { prefer: "type-imports", fixStyle: "inline-type-imports" },
       ],
       "@typescript-eslint/no-unused-vars": [
-        "warn",
-        { argsIgnorePattern: "^_" },
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
       "@typescript-eslint/require-await": "off",
       "@typescript-eslint/no-misused-promises": [
         "error",
         { checksVoidReturn: { attributes: false } },
       ],
+      "@typescript-eslint/no-unnecessary-condition": "error",
+      "@typescript-eslint/no-non-null-assertion": "error",
+      "consistent-return": "error",
     },
   },
   {

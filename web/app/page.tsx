@@ -3,9 +3,9 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function Home() {
   return (
-    <main className="min-h-screen flex flex-col items-center py-4 px-1 gap-4">
-      <div className="grow grid self-stretch place-content-center grid-cols-1 items-stretch grid-rows-1 lg:p-24 2xl:py-36 2xl:px-72">
-        <div className="rounded-lg border bg-card">
+    <main className="flex min-h-screen flex-col items-center gap-4 px-1 py-4">
+      <div className="grid grow grid-cols-1 grid-rows-1 place-content-center items-stretch self-stretch lg:p-24 2xl:px-72 2xl:py-36">
+        <div className="bg-card rounded-lg border">
           <TSPForm />
         </div>
       </div>

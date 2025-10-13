@@ -20,15 +20,15 @@ function getFetchOptions(method: Method): RequestInit {
 
 const apiResSchema = z.object({
   message: z.string().nullable(),
-  data: z.any(),
+  data: z.unknown(),
 });
 
 async function handleRes(res: Response): Promise<unknown> {
-  const data = await res.json();
+  const data = await (res.json() as Promise<unknown>);
   const parsed = apiResSchema.parse(data);
 
   if (res.ok) {
-    return parsed.data as unknown;
+    return parsed.data;
   } else {
     throw new Error(
       parsed.message ?? "Request failed: " + res.status.toString()

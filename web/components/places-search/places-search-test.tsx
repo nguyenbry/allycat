@@ -18,7 +18,7 @@ export function usePlacesQuery(
     if (!cleaned2) {
       // in the case of nothing, don't debounce it because this should cause UI update as fast as possible
       setDebouncedQuery(undefined);
-      return;
+      return undefined;
     }
 
     const timer = setTimeout(() => {

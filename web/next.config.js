@@ -6,6 +6,10 @@ const jiti = createJiti(fileURLToPath(import.meta.url));
 jiti("./env");
 
 /** @type {import('next').NextConfig} */
-export default {
-  /** ... */
+const config = {
+  experimental: {
+    reactCompiler: true,
+  },
 };
+
+export default config;

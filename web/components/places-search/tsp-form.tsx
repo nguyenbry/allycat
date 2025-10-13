@@ -60,7 +60,7 @@ type OmitProps<
     | keyof React.JSX.IntrinsicElements
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     | React.JSXElementConstructor<any>,
-  TProps extends keyof React.ComponentProps<TComponent>
+  TProps extends keyof React.ComponentProps<TComponent>,
 > = Omit<React.ComponentProps<TComponent>, TProps>;
 
 const locationBiasAtom = atom<placeSchema | undefined>(undefined);
@@ -80,7 +80,7 @@ type Route = {
   origin: placeSchema | undefined;
 };
 
-const testRoute: Route = {
+const _testRoute: Route = {
   stops: [
     {
       id: "ChIJcRzlRgbIxokR1yUtRPv8u4I",
@@ -380,11 +380,11 @@ function TSPFormInner() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-4 p-6">
-        <div className="leading-none font-semibold text-xl">Create a route</div>
+        <div className="text-xl leading-none font-semibold">Create a route</div>
 
         <div className="mt-auto flex flex-col gap-3">
           <PasswordInput />
-          <div className="flex flex-col lg:grid lg:grid-cols-2 gap-2">
+          <div className="flex flex-col gap-2 lg:grid lg:grid-cols-2">
             <SetLocationBiasButton />
 
             <Provider>
@@ -550,20 +550,20 @@ function RoutesForDestination({
   return (
     <div
       className={cn(
-        "rounded-md border p-3 bg-background flex flex-col gap-2",
+        "bg-background flex flex-col gap-2 rounded-md border p-3",
         method === "tsp" && "border-emerald-500"
       )}
     >
       <div className="flex flex-col items-start">
-        <span className="tracking-tight text-sm font-bold">
+        <span className="text-sm font-bold tracking-tight">
           End: {d.displayName.text}
         </span>
-        <span className="tracking-tight text-xs text-muted-foreground">
+        <span className="text-muted-foreground text-xs tracking-tight">
           {d.formattedAddress}
         </span>
       </div>
 
-      <div className="flex flex-col divide-y-[1px] divide-border">
+      <div className="divide-border flex flex-col divide-y-[1px]">
         {bike && (
           <RouteForVehicle
             destination={destination}
@@ -628,16 +628,16 @@ function RouteForVehicle({
   const Icon = getIcon();
 
   return (
-    <div className="py-4 flex gap-2 items-center">
-      <div className="px-2 shrink-0">
+    <div className="flex items-center gap-2 py-4">
+      <div className="shrink-0 px-2">
         <Icon className="text-muted-foreground size-7" />
       </div>
-      <div className="flex flex-col grow gap-4">
+      <div className="flex grow flex-col gap-4">
         <div className="flex gap-2">
           <Badge>{route.displayDistance}</Badge>
           <Badge>{route.displayDuration}</Badge>
         </div>
-        <div className="flex flex-col divide-y-[1px] divide-border">
+        <div className="divide-border flex flex-col divide-y-[1px]">
           {route.order.map((placeId) => {
             return <A key={placeId} placeId={placeId} />;
           })}
@@ -658,7 +658,7 @@ function A({ placeId, isEnd }: { placeId: string; isEnd?: true }) {
   if (!found) throw new Error("Place not found in route");
 
   return (
-    <div className="p-1 flex gap-1.5">
+    <div className="flex gap-1.5 p-1">
       <div className="flex flex-col">
         <span className={cn("text-xs break-all", isEnd && "text-jade-11")}>
           {found.displayName.text}
@@ -681,7 +681,7 @@ function A({ placeId, isEnd }: { placeId: string; isEnd?: true }) {
             size: "icon-sm",
             variant: "outline",
           }),
-          "shrink-0 ml-auto self-start"
+          "ml-auto shrink-0 self-start"
         )}
       >
         <Map className="size-3" />
@@ -725,8 +725,8 @@ function StopsArea() {
   const [stops, setStops] = useAtom(stopsAtom);
 
   return (
-    <div className="rounded-md border bg-card border-border text-card-foreground p-2 flex flex-col gap-2">
-      <div className="flex justify-between items-start">
+    <div className="bg-card border-border text-card-foreground flex flex-col gap-2 rounded-md border p-2">
+      <div className="flex items-start justify-between">
         <span className="text-sm font-bold">Stops</span>
 
         <Provider>
@@ -752,8 +752,8 @@ function StopsArea() {
       </div>
 
       {stops.length === 0 ? (
-        <div className="py-10 grid place-content-center">
-          <span className="text-xs text-muted-foreground">No stops added</span>
+        <div className="grid place-content-center py-10">
+          <span className="text-muted-foreground text-xs">No stops added</span>
         </div>
       ) : (
         <ul className="flex flex-col gap-0.5 pl-2">
@@ -764,7 +764,7 @@ function StopsArea() {
                   <span className="text-sm font-semibold">
                     {stop.displayName.text}
                   </span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-muted-foreground text-xs">
                     {stop.formattedAddress}
                   </span>
                 </div>
@@ -821,10 +821,10 @@ const SetOriginTrigger = React.forwardRef<
       {...props}
       ref={ref}
       variant={"jade"}
-      className="break-all py-2 h-auto min-h-9 whitespace-break-spaces"
+      className="h-auto min-h-9 py-2 break-all whitespace-break-spaces"
     >
       Start: {locationBias.displayName.text} - {locationBias.formattedAddress}
-      <Pencil className="size-4 ml-2" />
+      <Pencil className="ml-2 size-4" />
     </Button>
   );
 });
@@ -855,10 +855,10 @@ const SetDestinationTrigger = React.forwardRef<
       {...props}
       ref={ref}
       variant={"destructive"}
-      className="break-all py-2 h-auto min-h-9 whitespace-break-spaces"
+      className="h-auto min-h-9 py-2 break-all whitespace-break-spaces"
     >
       End: {place.displayName.text} - {place.formattedAddress}
-      <Pencil className="size-4 ml-2" />
+      <Pencil className="ml-2 size-4" />
     </Button>
   );
 });
@@ -906,11 +906,11 @@ const SetBiasTrigger = React.forwardRef<
       {...props}
       ref={ref}
       variant={"jade"}
-      className="break-all py-2 h-auto min-h-9 whitespace-break-spaces"
+      className="h-auto min-h-9 py-2 break-all whitespace-break-spaces"
     >
       Location Bias: {locationBias.displayName.text} -{" "}
       {locationBias.formattedAddress}
-      <Pencil className="size-4 ml-2" />
+      <Pencil className="ml-2 size-4" />
     </Button>
   );
 });
@@ -968,7 +968,6 @@ function LocationSelectResponsiveDrawerOrDialog({
             locationBias={locationBias}
             onSubmit={onSubmitWrapped}
             inputAtom={inputAtom}
-            selectedLocationFormAtom={selectedLocationFormAtom}
           />
         </DialogContent>
       </Dialog>
@@ -987,9 +986,8 @@ function LocationSelectResponsiveDrawerOrDialog({
           ref={inputRef}
           locationBias={locationBias}
           onSubmit={onSubmitWrapped}
-          className="px-4 grow"
+          className="grow px-4"
           inputAtom={inputAtom}
-          selectedLocationFormAtom={selectedLocationFormAtom}
         />
       </DrawerContent>
     </Drawer>
@@ -999,13 +997,11 @@ function LocationSelectResponsiveDrawerOrDialog({
 function DrawerOrDialogContent({
   className,
   inputAtom,
-  selectedLocationFormAtom,
   onSubmit,
   locationBias,
   ref,
 }: PropsWithCn<{
   inputAtom: PrimitiveAtom<string>;
-  selectedLocationFormAtom: PrimitiveAtom<placeSchema | undefined>;
   onSubmit: (place: placeSchema) => void;
   locationBias: { longitude: number; latitude: number } | undefined;
 }> & { ref?: React.Ref<HTMLInputElement> }) {
@@ -1035,18 +1031,18 @@ function DrawerOrDialogContent({
       </div>
       {placesQuery.isFetching && (
         <div className="flex py-4">
-          <Loader2 className="animate-spin size-6 mx-auto" />
+          <Loader2 className="mx-auto size-6 animate-spin" />
         </div>
       )}
 
       {places ? (
         places.length > 0 ? (
           <Box
-            className="grow min-h-[30dvh] overflow-clip relative inline-flex"
+            className="relative inline-flex min-h-[30dvh] grow overflow-clip"
             heightAtom={heightAtom}
           >
             {h !== undefined && (
-              <div className="absolute top-0 left-0 right-0">
+              <div className="absolute top-0 right-0 left-0">
                 <ScrollArea
                   style={{
                     height: h,
@@ -1069,9 +1065,9 @@ function DrawerOrDialogContent({
             )}
           </Box>
         ) : (
-          <div className="flex text-muted-foreground flex-col my-auto">
-            <X className="size-10 mx-auto" />
-            <span className="text-xs text-wrap text-center">
+          <div className="text-muted-foreground my-auto flex flex-col">
+            <X className="mx-auto size-10" />
+            <span className="text-center text-xs text-wrap">
               No results found for &apos;{value}&apos;
             </span>
           </div>
@@ -1094,7 +1090,7 @@ function Box({
   React.useEffect(() => {
     const e = ref.current;
 
-    if (!e) return;
+    if (!e) return undefined;
 
     const r = new ResizeObserver(([entry]) => {
       const contentHeight = entry.contentRect.height;
@@ -1125,16 +1121,16 @@ function PlaceOptionButton({
     <button
       onClick={onClick}
       className={cn(
-        "rounded-sm border p-3 animate-in slide-in-from-bottom-5 flex flex-col gap-1 transition-colors cursor-pointer",
+        "animate-in slide-in-from-bottom-5 flex cursor-pointer flex-col gap-1 rounded-sm border p-3 transition-colors",
         isSelected
-          ? "bg-jade-3 hover:bg-jade-4 border-jade-7 border hover:border-jade-8"
+          ? "bg-jade-3 hover:bg-jade-4 border-jade-7 hover:border-jade-8 border"
           : "bg-card hover:bg-accent"
       )}
       key={place.id}
     >
       <span
         className={cn(
-          "font-semibold tracking-tight ",
+          "font-semibold tracking-tight",
           isSelected ? "text-jade-11" : "text-card-foreground"
         )}
       >
