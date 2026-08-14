@@ -12,6 +12,11 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
+    // env.ts validates this at import time, so anything importing the fetcher
+    // (directly or transitively) fails to load without it.
+    env: {
+      NEXT_PUBLIC_API_URL: "http://localhost:8080/api",
+    },
     include: ["**/*.test.ts", "**/*.test.tsx"],
     exclude: ["node_modules/**", ".next/**"],
   },
