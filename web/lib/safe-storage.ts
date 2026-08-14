@@ -79,18 +79,28 @@ export function getSafeStorage(): Storage {
       }
     },
     clear: () => {
+      // Always clear both, or a memory-only write would outlive a clear().
+      getMemoryFallback().clear();
+
       try {
         underlying.clear();
       } catch {
-        getMemoryFallback().clear();
+        // nothing left to do; the memory copy is already gone
       }
     },
     getItem: (key: string) => {
+      // Check the fallback whenever the real store has nothing: a previous
+      // setItem may have been rejected (quota exhausted mid-session) and
+      // landed in memory instead, and reading only `underlying` would then
+      // report the value as missing.
       try {
-        return underlying.getItem(key);
+        const value = underlying.getItem(key);
+        if (value !== null) return value;
       } catch {
-        return getMemoryFallback().getItem(key);
+        // fall through to the memory copy
       }
+
+      return getMemoryFallback().getItem(key);
     },
     key: (index: number) => {
       try {
@@ -100,10 +110,13 @@ export function getSafeStorage(): Storage {
       }
     },
     removeItem: (key: string) => {
+      // Same reasoning as clear(): remove from both copies.
+      getMemoryFallback().removeItem(key);
+
       try {
         underlying.removeItem(key);
       } catch {
-        getMemoryFallback().removeItem(key);
+        // already removed from the memory copy
       }
     },
     setItem: (key: string, value: string) => {
