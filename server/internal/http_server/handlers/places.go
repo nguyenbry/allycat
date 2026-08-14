@@ -120,7 +120,7 @@ func (h PlacesHandler) HandleOptimizeRoute(w http.ResponseWriter, r *http.Reques
 		WithStart(b.Start.Id, *b.Start.Lat, *b.Start.Long)
 
 	if b.End != nil {
-		builder = builder.WithEnd(b.End.Id, *b.Start.Lat, *b.End.Long)
+		builder = builder.WithEnd(b.End.Id, *b.End.Lat, *b.End.Long)
 	}
 
 	for _, s := range b.Stops {

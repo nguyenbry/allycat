@@ -123,19 +123,15 @@ func (p *PlacesApi) TextSearch(ctx context.Context, opts TextSearchOptions) ([]p
 		defer drainAndClose(resp.Body)
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API request failed with status %d", resp.StatusCode)
-	}
-
 	respBody, err := io.ReadAll(resp.Body)
 
 	if err != nil {
 		return nil, fmt.Errorf("error reading response: %w", err)
-	} else {
-		fmt.Println(105, string(respBody))
 	}
 
-	// Check for HTTP errors
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("places:searchText failed with status %d: %s", resp.StatusCode, googleAPIError(respBody))
+	}
 
 	var respData struct {
 		Places []place `json:"places"`
@@ -386,14 +382,14 @@ func (p *PlacesApi) OptimizeRoute(ctx context.Context, opts optimizeRouteOptions
 			defer drainAndClose(resp.Body)
 		}
 
-		if resp.StatusCode != http.StatusOK {
-			return nil, (fmt.Errorf("API request failed with status %d", resp.StatusCode))
-		}
-
 		respBody, err := io.ReadAll(resp.Body)
 
 		if err != nil {
 			return nil, fmt.Errorf("error reading response: %w", err)
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			return nil, fmt.Errorf("computeRoutes failed with status %d: %s", resp.StatusCode, googleAPIError(respBody))
 		}
 
 		fmt.Println()
@@ -588,6 +584,39 @@ type displayName struct {
 
 type googleMapsLinks struct {
 	Directions string `json:"directionsUri"`
+}
+
+// googleAPIError pulls the human-readable reason out of Google's standard error
+// envelope so failures say what actually went wrong instead of just a status code.
+// Falls back to the raw body when the payload isn't in the expected shape.
+func googleAPIError(body []byte) string {
+	var envelope struct {
+		Error struct {
+			Message string `json:"message"`
+			Status  string `json:"status"`
+			Details []struct {
+				Reason string `json:"reason"`
+			} `json:"details"`
+		} `json:"error"`
+	}
+
+	if err := json.Unmarshal(body, &envelope); err != nil || envelope.Error.Message == "" {
+		return strings.TrimSpace(string(body))
+	}
+
+	parts := []string{envelope.Error.Message}
+
+	if s := envelope.Error.Status; s != "" {
+		parts = append(parts, "status="+s)
+	}
+
+	for _, d := range envelope.Error.Details {
+		if d.Reason != "" {
+			parts = append(parts, "reason="+d.Reason)
+		}
+	}
+
+	return strings.Join(parts, " ")
 }
 
 // https://www.reddit.com/r/golang/comments/fil647/this_3_year_old_thread_had_an_important_dicussion/
