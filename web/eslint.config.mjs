@@ -1,20 +1,20 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
 import tseslint from "typescript-eslint";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
+// Next.js 16 ships this as a native flat config, so the previous FlatCompat
+// wrapper now throws on a circular plugin reference. Its bundled
+// "next/typescript" entry also registers @typescript-eslint, which collides
+// with the stricter type-checked setup below; drop it and let that block own
+// the plugin, which is what the pre-16 config effectively did.
+const nextConfigs = nextCoreWebVitals.filter(
+  (config) => config.name !== "next/typescript"
+);
 
 export default tseslint.config(
   {
     ignores: [".next", "next-env.d.ts"],
   },
-  ...compat.extends("next/core-web-vitals"),
+  ...nextConfigs,
   {
     files: ["**/*.ts", "**/*.tsx"],
     extends: [

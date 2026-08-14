@@ -16,8 +16,6 @@ export function usePlacesQuery(
 
   useEffect(() => {
     if (!cleaned2) {
-      // in the case of nothing, don't debounce it because this should cause UI update as fast as possible
-      setDebouncedQuery(undefined);
       return undefined;
     }
 
@@ -30,16 +28,21 @@ export function usePlacesQuery(
     };
   }, [cleaned2]);
 
+  // Clearing the box drops results immediately rather than waiting out the
+  // debounce. Derived during render instead of set from the effect, which
+  // would cost an extra render pass on every keystroke that empties the box.
+  const effectiveQuery = cleaned2 ? debouncedQuery : undefined;
+
   const searchQuery = useQuery({
-    queryKey: ["places-search", debouncedQuery, locationBias],
+    queryKey: ["places-search", effectiveQuery, locationBias],
     queryFn: () => {
       return placesSearch({
-        query: debouncedQuery ?? "dummy",
+        query: effectiveQuery ?? "dummy",
         locationBias: locationBias,
       });
     },
     gcTime: 1000 * 20, // 20 seconds
-    enabled: !!debouncedQuery,
+    enabled: !!effectiveQuery,
     staleTime: Infinity,
   });
 

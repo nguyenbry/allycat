@@ -7,9 +7,8 @@ jiti("./env");
 
 /** @type {import('next').NextConfig} */
 const config = {
-  experimental: {
-    reactCompiler: true,
-  },
+  // Stable as of Next.js 16; was experimental.reactCompiler before.
+  reactCompiler: true,
 };
 
 export default config;

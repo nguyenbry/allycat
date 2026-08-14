@@ -48,7 +48,6 @@ import { ScrollArea } from "../ui/scroll-area";
 import { type PropsWithCn } from "../types";
 import { useMemo } from "use-memo-one";
 import { useQuery } from "@tanstack/react-query";
-import type { Expect, Equal } from "type-testing";
 import { Badge } from "../ui/badge";
 import { useStore as useZtore } from "zustand";
 import { passwordStore } from "@/stores/password-store";
@@ -604,6 +603,17 @@ enum Vehicle {
   Car,
 }
 
+/**
+ * Module-level so the icon is a stable reference rather than a component
+ * resolved during render, which react-hooks/static-components flags. Typing
+ * it as a full Record keeps the exhaustiveness check: adding a Vehicle member
+ * without an icon is a compile error.
+ */
+const VEHICLE_ICONS: Record<Vehicle, typeof Bike> = {
+  [Vehicle.Bike]: Bike,
+  [Vehicle.Car]: Car,
+};
+
 function RouteForVehicle({
   route,
   vehicle,
@@ -613,19 +623,7 @@ function RouteForVehicle({
   route: routeSchema;
   destination: string;
 }) {
-  const getIcon = () => {
-    switch (vehicle) {
-      case Vehicle.Bike:
-        return Bike;
-      case Vehicle.Car:
-        return Car;
-      default:
-        type _ = Expect<Equal<typeof vehicle, never>>;
-        throw new Error("Unknown vehicle type");
-    }
-  };
-
-  const Icon = getIcon();
+  const Icon = VEHICLE_ICONS[vehicle];
 
   return (
     <div className="flex items-center gap-2 py-4">
