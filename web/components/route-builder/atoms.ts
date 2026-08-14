@@ -81,6 +81,21 @@ export const savedRouteAtom = persistentAtom<SavedRoute | null>(
   null
 );
 
+/**
+ * Ids of stops already ticked off, persisted so the progress survives the tab
+ * being evicted mid-race. Purely a visual marker — it never affects routing.
+ */
+export const visitedIdsAtom = persistentAtom<string[]>("visited-ids", []);
+
+export const toggleVisitedAtom = atom(null, (get, set, id: string) => {
+  const visited = get(visitedIdsAtom);
+
+  set(
+    visitedIdsAtom,
+    visited.includes(id) ? visited.filter((x) => x !== id) : [...visited, id]
+  );
+});
+
 /** Transient: drives the fetch itself, never persisted. */
 export const calculateRequestedAtom = atom(false);
 
@@ -121,6 +136,8 @@ export const discardRouteAtom = atom(null, (_get, set) => {
   set(savedRouteAtom, null);
   set(calculateRequestedAtom, false);
   set(resultsOpenAtom, false);
+  // Progress belongs to the discarded route, not the stop list.
+  set(visitedIdsAtom, []);
 });
 
 /** Wipes the whole session — used when starting a fresh race sheet. */
@@ -132,4 +149,5 @@ export const startNewRouteAtom = atom(null, (_get, set) => {
   set(startIdAtom, undefined);
   set(endIdAtom, undefined);
   set(queryAtom, "");
+  set(visitedIdsAtom, []);
 });

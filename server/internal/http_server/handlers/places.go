@@ -24,6 +24,11 @@ const (
 	// The local solver already answers instantly, so this budget only decides
 	// how long to wait before falling back to solver-only.
 	optimizeRouteTimeout = 8 * time.Second
+
+	// Measuring an already-decided order is a single upstream call. It only
+	// enriches a route the rider already has, so it fails fast rather than
+	// holding the connection open.
+	routeLegsTimeout = 8 * time.Second
 )
 
 type PlacesHandler struct {
@@ -203,4 +208,54 @@ func (h PlacesHandler) HandleOptimizeRoute(w http.ResponseWriter, r *http.Reques
 	}
 
 	WriteJSONResponse(w, NewResponse().WithData(allRoutes), http.StatusOK)
+}
+
+// HandleRouteLegs measures a route whose order the caller already decided, and
+// returns the real road distance of each hop.
+//
+// This exists because the solver reports straight-line distance, which is a
+// rough estimate. The client enriches a displayed route with these numbers
+// after the fact, so a failure here degrades the display without costing the
+// rider their route.
+func (h PlacesHandler) HandleRouteLegs(w http.ResponseWriter, r *http.Request) {
+	var b struct {
+		Origin      string   `json:"origin"`
+		Stops       []string `json:"stops"`
+		Destination string   `json:"destination"`
+		ByCar       bool     `json:"byCar"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
+		WriteJSONResponse(w, NewResponse().WithMessage("Invalid payload"), http.StatusBadRequest)
+		return
+	}
+
+	opts := places.RouteLegsOptions{
+		Origin:      b.Origin,
+		Stops:       b.Stops,
+		Destination: b.Destination,
+		ByCar:       b.ByCar,
+	}
+
+	googleMethodContext, cancel := context.WithTimeout(r.Context(), routeLegsTimeout)
+	defer cancel()
+
+	res, err := h.api.RouteLegs(googleMethodContext, opts)
+
+	if err != nil {
+		// Validation problems are the caller's fault; anything else is ours or
+		// Google's, and the client treats both the same way — it just skips
+		// the enrichment.
+		if errors.Is(err, context.DeadlineExceeded) {
+			log.Printf("route legs timed out: %v", err)
+			WriteJSONResponse(w, NewResponse().WithMessage("Timed out measuring the route"), http.StatusGatewayTimeout)
+			return
+		}
+
+		log.Printf("route legs failed: %v", err)
+		WriteJSONResponse(w, NewResponse().WithMessage(err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	WriteJSONResponse(w, NewResponse().WithData(res), http.StatusOK)
 }

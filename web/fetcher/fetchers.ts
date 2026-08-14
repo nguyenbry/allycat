@@ -252,6 +252,44 @@ export const optimizeRoute = async (payload: {
   return routesForDestinationSchema.array().parse(res);
 };
 
+const routeLegSchema = z.object({
+  fromId: z.string(),
+  toId: z.string(),
+  meters: z.number(),
+  displayDistance: z.string(),
+  displayDuration: z.string(),
+});
+
+export type routeLegSchema = z.infer<typeof routeLegSchema>;
+
+const routeLegsSchema = z.object({
+  legs: routeLegSchema.array(),
+  meters: z.number(),
+  displayDistance: z.string(),
+  displayDuration: z.string(),
+});
+
+export type routeLegsSchema = z.infer<typeof routeLegsSchema>;
+
+/**
+ * Measures a route whose order is already decided, returning the real road
+ * distance of each hop.
+ *
+ * The solver reports straight-line distance, which understates reality. This
+ * enriches a route that is already on screen, so callers must treat a failure
+ * as cosmetic — never block the route on it.
+ */
+export const routeLegs = async (payload: {
+  origin: string;
+  stops: string[];
+  destination: string;
+  byCar?: boolean;
+}) => {
+  const res = await POST(`/places/legs`, { body: payload });
+
+  return routeLegsSchema.parse(res);
+};
+
 const _testData: routesPerDestinationSchema[] = [
   {
     destination:

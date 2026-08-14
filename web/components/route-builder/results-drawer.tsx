@@ -13,12 +13,16 @@ import {
   savedRouteAtom,
   startNewRouteAtom,
   startPlaceAtom,
+  toggleVisitedAtom,
+  visitedIdsAtom,
   type SavedRoute,
 } from "./atoms";
 import {
   optimizeRoute,
+  routeLegs,
   type OptimizePlace,
   type placeSchema,
+  type routeLegSchema,
   type routeSchema,
   type routesPerDestinationSchema,
 } from "@/fetcher/fetchers";
@@ -46,9 +50,11 @@ import { cn } from "@/lib/utils";
 import {
   Bike,
   Car,
+  Check,
   Flag,
   Navigation,
   RotateCcw,
+  Ruler,
   Sparkles,
   TriangleAlert,
 } from "lucide-react";
@@ -300,6 +306,10 @@ function DestinationCard({
 }) {
   const destinationPlace = savedRoute.places.find((p) => p.id === destination);
 
+  // Only the solver reports straight-line distance; Google's numbers are
+  // already measured on roads.
+  const isEstimate = method === "tsp";
+
   if (!bike && !car) return null;
 
   // The car order is often identical to the bike order; showing both is noise.
@@ -357,6 +367,8 @@ function DestinationCard({
               route={bike}
               destination={destination}
               savedRoute={savedRoute}
+              isEstimate={isEstimate}
+              byCar={false}
             />
           </TabsContent>
           <TabsContent value="car">
@@ -364,6 +376,8 @@ function DestinationCard({
               route={car}
               destination={destination}
               savedRoute={savedRoute}
+              isEstimate={isEstimate}
+              byCar
             />
           </TabsContent>
         </Tabs>
@@ -374,6 +388,8 @@ function DestinationCard({
               route={bike}
               destination={destination}
               savedRoute={savedRoute}
+              isEstimate={isEstimate}
+              byCar={false}
             />
           ) : (
             car && (
@@ -381,6 +397,8 @@ function DestinationCard({
                 route={car}
                 destination={destination}
                 savedRoute={savedRoute}
+                isEstimate={isEstimate}
+                byCar
               />
             )
           )}
@@ -390,42 +408,130 @@ function DestinationCard({
   );
 }
 
-function RouteLegs({
+/**
+ * Fetches the real road distance of each hop for an order that is already
+ * decided.
+ *
+ * Deliberately additive: the route is already on screen and usable before this
+ * resolves, and a failure only removes the per-hop numbers. Nothing here may
+ * block or replace the route itself — mid-race, some answer beats a better one
+ * that never arrives.
+ */
+function useRealLegs({
   route,
   destination,
   savedRoute,
+  byCar,
 }: {
   route: routeSchema;
   destination: string;
   savedRoute: SavedRoute;
+  byCar: boolean;
+}) {
+  return useQuery({
+    queryKey: [
+      "route-legs",
+      savedRoute.startId,
+      route.order,
+      destination,
+      byCar,
+    ],
+    // Measuring a fixed order never changes; don't pay for it twice.
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 30,
+    retry: 1,
+    queryFn: () =>
+      routeLegs({
+        origin: savedRoute.startId,
+        stops: route.order,
+        destination,
+        byCar,
+      }),
+  });
+}
+
+function RouteLegs({
+  route,
+  destination,
+  savedRoute,
+  isEstimate,
+  byCar,
+}: {
+  route: routeSchema;
+  destination: string;
+  savedRoute: SavedRoute;
+  isEstimate: boolean;
+  byCar: boolean;
 }) {
   const lookup = (id: string) => savedRoute.places.find((p) => p.id === id);
-  const start = lookup(savedRoute.startId);
+
+  const real = useRealLegs({ route, destination, savedRoute, byCar });
+
+  // fromId -> that hop, so each row can show the distance to the next stop.
+  const legByFrom = new Map(
+    (real.data?.legs ?? []).map((leg) => [leg.fromId, leg])
+  );
+
+  const ordered = [savedRoute.startId, ...route.order, destination];
 
   return (
     <div className="flex flex-col gap-3 pt-3">
-      <div className="flex gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Badge variant="secondary">{route.displayDistance}</Badge>
         {/* The solver has no duration model, so it sends a placeholder. */}
         {route.displayDuration !== "idk2" && (
           <Badge variant="secondary">{route.displayDuration}</Badge>
         )}
+        {isEstimate && (
+          <Badge variant="outline" className="gap-1">
+            <Ruler className="size-3" />
+            Estimated
+          </Badge>
+        )}
       </div>
 
+      {isEstimate && (
+        <p className="text-muted-foreground text-xs leading-relaxed">
+          Straight-line distance between stops, padded by 10% — it ignores
+          roads, one-ways and river crossings, so the real ride is longer.
+          {real.data && (
+            <>
+              {" "}
+              Measured on roads this route is{" "}
+              <span className="text-foreground font-medium">
+                {real.data.displayDistance}
+              </span>
+              , about {real.data.displayDuration}.
+            </>
+          )}
+        </p>
+      )}
+
+      {real.isError && (
+        <p className="text-muted-foreground text-xs">
+          Couldn&apos;t measure the real distances — showing the estimate only.
+        </p>
+      )}
+
       <ol className="flex flex-col">
-        {start && <LegRow place={start} label="Start" tone="start" />}
-        {route.order.map((placeId, i) => {
+        {ordered.map((placeId, i) => {
           const place = lookup(placeId);
           if (!place) return null;
+
+          const isStart = i === 0;
+          const isEnd = i === ordered.length - 1;
+
           return (
-            <LegRow key={placeId} place={place} label={`${i + 1}`} tone="stop" />
+            <LegRow
+              key={`${placeId}:${i}`}
+              place={place}
+              label={isStart || isEnd ? "" : `${i}`}
+              tone={isStart ? "start" : isEnd ? "end" : "stop"}
+              toNext={legByFrom.get(placeId)}
+              isMeasuring={real.isPending}
+            />
           );
         })}
-        {(() => {
-          const place = lookup(destination);
-          if (!place) return null;
-          return <LegRow place={place} label="Finish" tone="end" />;
-        })()}
       </ol>
     </div>
   );
@@ -435,31 +541,76 @@ function LegRow({
   place,
   label,
   tone,
+  toNext,
+  isMeasuring,
 }: {
   place: placeSchema;
   label: string;
   tone: "start" | "stop" | "end";
+  toNext: routeLegSchema | undefined;
+  isMeasuring: boolean;
 }) {
+  const visited = useAtomValue(visitedIdsAtom);
+  const toggleVisited = useSetAtom(toggleVisitedAtom);
+
+  const isVisited = visited.includes(place.id);
+
   return (
-    <li className="flex items-center gap-3 border-b py-2.5 last:border-b-0">
-      <span
+    <li className="flex items-center gap-3 border-b py-2 last:border-b-0">
+      {/* The marker doubles as the tick-off control: a big, obvious target
+          that works with one thumb while moving. */}
+      <button
+        type="button"
+        onClick={() => toggleVisited(place.id)}
+        aria-pressed={isVisited}
+        aria-label={
+          isVisited
+            ? `Mark ${place.displayName.text} as not visited`
+            : `Mark ${place.displayName.text} as visited`
+        }
         className={cn(
-          "flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
-          tone === "start" && "bg-jade-9 text-white",
-          tone === "end" && "bg-destructive text-white",
-          tone === "stop" && "bg-muted text-muted-foreground"
+          "flex size-11 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition-colors active:scale-95",
+          isVisited
+            ? "bg-jade-9 text-white"
+            : tone === "start"
+              ? "bg-jade-3 text-jade-11 ring-jade-7 ring-1"
+              : tone === "end"
+                ? "bg-destructive/15 text-destructive ring-destructive/40 ring-1"
+                : "bg-muted text-muted-foreground"
         )}
       >
-        {tone === "stop" ? label : <Flag className="size-3.5" />}
-      </span>
+        {isVisited ? (
+          <Check className="size-5" />
+        ) : tone === "stop" ? (
+          label
+        ) : (
+          <Flag className="size-4" />
+        )}
+      </button>
 
       <div className="flex min-w-0 grow flex-col">
-        <span className="truncate text-sm font-medium">
+        <span
+          className={cn(
+            "truncate text-sm font-medium",
+            isVisited && "text-muted-foreground line-through"
+          )}
+        >
           {place.displayName.text}
         </span>
         <span className="text-muted-foreground truncate text-xs">
           {place.formattedAddress}
         </span>
+        {tone !== "end" && (
+          <span className="text-muted-foreground mt-0.5 text-xs">
+            {toNext ? (
+              <>
+                ↓ {toNext.displayDistance} · {toNext.displayDuration}
+              </>
+            ) : isMeasuring ? (
+              <span className="opacity-60">↓ measuring…</span>
+            ) : null}
+          </span>
+        )}
       </div>
 
       <a

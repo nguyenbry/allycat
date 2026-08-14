@@ -637,3 +637,190 @@ func drainAndClose(rc io.ReadCloser) {
 	_, _ = io.Copy(io.Discard, rc)
 	_ = rc.Close()
 }
+
+// --- per-leg distances for an already-decided order ------------------------
+
+// RouteLegsOptions describes a route whose order is already fixed. This is the
+// same upstream call as OptimizeRoute minus the optimization: the solver has
+// already chosen the sequence, so Google is only asked to measure it.
+type RouteLegsOptions struct {
+	Origin      string
+	Stops       []string
+	Destination string
+	ByCar       bool
+}
+
+// RouteLeg is one hop between consecutive waypoints.
+type RouteLeg struct {
+	FromId          string `json:"fromId"`
+	ToId            string `json:"toId"`
+	Meters          int64  `json:"meters"`
+	DisplayDistance string `json:"displayDistance"`
+	DisplayDuration string `json:"displayDuration"`
+}
+
+type RouteLegsResult struct {
+	Legs            []RouteLeg `json:"legs"`
+	Meters          int64      `json:"meters"`
+	DisplayDistance string     `json:"displayDistance"`
+	DisplayDuration string     `json:"displayDuration"`
+}
+
+func (o RouteLegsOptions) validate() error {
+	if o.Origin == "" {
+		return errors.New("origin is required")
+	}
+
+	if o.Destination == "" {
+		return errors.New("destination is required")
+	}
+
+	for i, s := range o.Stops {
+		if s == "" {
+			return fmt.Errorf("stop at index %d: id is required", i)
+		}
+	}
+
+	return nil
+}
+
+// waypoints returns the full visiting order, origin and destination included.
+func (o RouteLegsOptions) waypoints() []string {
+	out := make([]string, 0, len(o.Stops)+2)
+	out = append(out, o.Origin)
+	out = append(out, o.Stops...)
+	out = append(out, o.Destination)
+	return out
+}
+
+// RouteLegs measures a fixed sequence of waypoints and returns the road
+// distance of each hop. One upstream request covers every leg.
+func (p *PlacesApi) RouteLegs(ctx context.Context, opts RouteLegsOptions) (*RouteLegsResult, error) {
+	if err := opts.validate(); err != nil {
+		return nil, err
+	}
+
+	var body struct {
+		Start    optimizePayloadPlace   `json:"origin"`
+		End      optimizePayloadPlace   `json:"destination"`
+		Stops    []optimizePayloadPlace `json:"intermediates,omitempty"`
+		Avoids   *optimizePayloadAvoids `json:"routeModifiers,omitempty"`
+		Vehicle  string                 `json:"travelMode"`
+		Optimize bool                   `json:"optimizeWaypointOrder"`
+	}
+
+	body.Start = optimizePayloadPlace{Id: opts.Origin}
+	body.End = optimizePayloadPlace{Id: opts.Destination}
+	// Explicitly false: the order is the answer being measured, not a question
+	// for Google to re-answer.
+	body.Optimize = false
+
+	for _, s := range opts.Stops {
+		body.Stops = append(body.Stops, optimizePayloadPlace{Id: s})
+	}
+
+	if opts.ByCar {
+		body.Vehicle = "DRIVE"
+		body.Avoids = &optimizePayloadAvoids{Tolls: true, Highways: true}
+	} else {
+		body.Vehicle = "BICYCLE"
+	}
+
+	jsonData, err := json.Marshal(body)
+
+	if err != nil {
+		return nil, fmt.Errorf("marshaling body: %w", err)
+	}
+
+	req, err := p.buildRequest(ctx, "POST", p.computeRoutesURL, bytes.NewBuffer(jsonData))
+
+	if err != nil {
+		return nil, fmt.Errorf("building req: %w", err)
+	}
+
+	req.Header.Set("X-Goog-FieldMask", strings.Join([]string{
+		"routes.distanceMeters",
+		"routes.localizedValues",
+		"routes.legs.distanceMeters",
+		"routes.legs.localizedValues",
+	}, ","))
+
+	resp, err := p.httpCli.Do(req)
+
+	if err != nil {
+		return nil, fmt.Errorf(".Do: %w", err)
+	}
+
+	defer drainAndClose(resp.Body)
+
+	respBody, err := io.ReadAll(resp.Body)
+
+	if err != nil {
+		return nil, fmt.Errorf("error reading response: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("computeRoutes legs failed with status %d: %s", resp.StatusCode, googleAPIError(respBody))
+	}
+
+	var respData struct {
+		Routes []struct {
+			Meters  int64 `json:"distanceMeters"`
+			Display struct {
+				Distance struct {
+					Text string `json:"text"`
+				} `json:"distance"`
+				Duration struct {
+					Text string `json:"text"`
+				} `json:"duration"`
+			} `json:"localizedValues"`
+			Legs []struct {
+				Meters  int64 `json:"distanceMeters"`
+				Display struct {
+					Distance struct {
+						Text string `json:"text"`
+					} `json:"distance"`
+					Duration struct {
+						Text string `json:"text"`
+					} `json:"duration"`
+				} `json:"localizedValues"`
+			} `json:"legs"`
+		} `json:"routes"`
+	}
+
+	if err := json.Unmarshal(respBody, &respData); err != nil {
+		return nil, fmt.Errorf("error unmarshaling response: %w", err)
+	}
+
+	if len(respData.Routes) == 0 {
+		return nil, errors.New("no route returned for the given order")
+	}
+
+	route := respData.Routes[0]
+	points := opts.waypoints()
+
+	// One leg per hop. A mismatch means the response does not describe the
+	// order that was asked for, so pairing ids to legs would be a guess.
+	if len(route.Legs) != len(points)-1 {
+		return nil, fmt.Errorf("expected %d legs for %d waypoints but got %d", len(points)-1, len(points), len(route.Legs))
+	}
+
+	legs := make([]RouteLeg, 0, len(route.Legs))
+
+	for i, leg := range route.Legs {
+		legs = append(legs, RouteLeg{
+			FromId:          points[i],
+			ToId:            points[i+1],
+			Meters:          leg.Meters,
+			DisplayDistance: leg.Display.Distance.Text,
+			DisplayDuration: leg.Display.Duration.Text,
+		})
+	}
+
+	return &RouteLegsResult{
+		Legs:            legs,
+		Meters:          route.Meters,
+		DisplayDistance: route.Display.Distance.Text,
+		DisplayDuration: route.Display.Duration.Text,
+	}, nil
+}

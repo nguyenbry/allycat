@@ -91,6 +91,7 @@ func InitializePlacesRoutes(r *chi.Mux, hs handlers.Handlers, pwHash string) {
 
 	placesRouter.Post("/search", placesHandler.HandleTextSearch)
 	placesRouter.Post("/optimize", placesHandler.HandleOptimizeRoute)
+	placesRouter.Post("/legs", placesHandler.HandleRouteLegs)
 
 	// Mounting the new Sub Router on the main router
 	r.Mount("/places", placesRouter)
