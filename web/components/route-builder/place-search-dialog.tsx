@@ -23,7 +23,6 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Spinner } from "@/components/ui/spinner";
 import {
   Empty,
@@ -76,8 +75,10 @@ export function PlaceSearchDialog({
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>{children}</DialogTrigger>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
+        {/* Bounded height and a flex column so the result list below has
+            something definite to shrink against. */}
+        <DialogContent className="flex max-h-[80dvh] flex-col sm:max-w-md">
+          <DialogHeader className="shrink-0">
             <DialogTitle>{title}</DialogTitle>
             <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
@@ -95,7 +96,9 @@ export function PlaceSearchDialog({
           <DrawerTitle>{title}</DrawerTitle>
           <DrawerDescription>{description}</DrawerDescription>
         </DrawerHeader>
-        <div className="flex min-h-0 grow flex-col px-4 pb-4">{body}</div>
+        <div className="flex min-h-0 grow flex-col px-4 pb-4">
+          {body}
+        </div>
       </DrawerContent>
     </Drawer>
   );
@@ -214,8 +217,14 @@ function PlaceSearchResultList({
   }
 
   return (
-    <ScrollArea className="min-h-[30dvh] grow">
-      <div className="flex flex-col gap-1 pr-3">
+    // Native scrolling with vaul drag disabled — inside a drawer a ScrollArea
+    // viewport does not become the overflowing box, so the list will not
+    // scroll on touch. See DrawerBody.
+    <div
+      data-vaul-no-drag=""
+      className="min-h-0 grow overflow-y-auto overscroll-contain"
+    >
+      <div className="flex flex-col gap-1 pr-1 pb-2">
         {query.data.map((place) => (
           <Item
             key={place.id}
@@ -233,6 +242,6 @@ function PlaceSearchResultList({
           </Item>
         ))}
       </div>
-    </ScrollArea>
+    </div>
   );
 }

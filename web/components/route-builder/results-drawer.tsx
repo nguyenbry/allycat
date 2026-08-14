@@ -24,6 +24,7 @@ import {
 } from "@/fetcher/fetchers";
 import {
   Drawer,
+  DrawerBody,
   DrawerContent,
   DrawerDescription,
   DrawerFooter,
@@ -41,7 +42,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import {
   Bike,
@@ -132,13 +132,13 @@ export function ResultsDrawer() {
           </DrawerDescription>
         </DrawerHeader>
 
-        <ScrollArea className="min-h-0 grow px-4">
+        <DrawerBody className="px-4">
           <ResultsBody
             isWorking={isWorking}
             error={query.isError ? query.error : undefined}
             savedRoute={savedRoute}
           />
-        </ScrollArea>
+        </DrawerBody>
 
         {savedRoute && (
           <DrawerFooter className="flex-row">
