@@ -15,6 +15,7 @@ import {
 } from "./atoms";
 import {
   Drawer,
+  DrawerBody,
   DrawerClose,
   DrawerContent,
   DrawerDescription,
@@ -40,7 +41,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Flag,
   MapPinned,
@@ -79,7 +79,7 @@ export function RouteDrawer({ children }: React.PropsWithChildren) {
           </DrawerDescription>
         </DrawerHeader>
 
-        <ScrollArea className="min-h-0 grow px-4">
+        <DrawerBody className="px-4">
           {selectedPlaces.length === 0 ? (
             <Empty className="py-12">
               <EmptyHeader>
@@ -101,7 +101,7 @@ export function RouteDrawer({ children }: React.PropsWithChildren) {
               </AnimatePresence>
             </ul>
           )}
-        </ScrollArea>
+        </DrawerBody>
 
         <DrawerFooter>
           {problem && (

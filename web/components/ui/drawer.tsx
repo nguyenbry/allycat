@@ -76,7 +76,40 @@ function DrawerHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="drawer-header"
-      className={cn("flex flex-col gap-1.5 p-4", className)}
+      className={cn("flex shrink-0 flex-col gap-1.5 p-4", className)}
+      {...props}
+    />
+  );
+}
+
+/**
+ * The scrollable region of a drawer.
+ *
+ * Two things here are load-bearing:
+ *
+ * Native `overflow-y-auto` rather than a ScrollArea: a ScrollArea's viewport
+ * sizes itself with `height: 100%`, which does not reliably resolve against a
+ * flex item, so the viewport stays as tall as its content — nothing overflows
+ * and nothing scrolls. Making this element the scroll container removes that
+ * indirection, and gets momentum scrolling on iOS for free.
+ *
+ * `grow` with `min-h-0`, deliberately not `basis-0`: the drawer is `h-auto`
+ * under a max-height, so a zero basis can collapse this to nothing when the
+ * list is short. Keeping the content-sized basis means it shrinks (and
+ * scrolls) only once the drawer actually hits its ceiling.
+ *
+ * `data-vaul-no-drag` stops vaul reading a scroll gesture as a drag on the
+ * sheet, which otherwise swallows touch scrolling on a phone.
+ */
+function DrawerBody({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="drawer-body"
+      data-vaul-no-drag=""
+      className={cn(
+        "min-h-0 grow overflow-y-auto overscroll-contain",
+        className
+      )}
       {...props}
     />
   );
@@ -86,7 +119,7 @@ function DrawerFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="drawer-footer"
-      className={cn("mt-auto flex flex-col gap-2 p-4", className)}
+      className={cn("mt-auto flex shrink-0 flex-col gap-2 p-4", className)}
       {...props}
     />
   );
@@ -126,6 +159,7 @@ export {
   DrawerClose,
   DrawerContent,
   DrawerHeader,
+  DrawerBody,
   DrawerFooter,
   DrawerTitle,
   DrawerDescription,
