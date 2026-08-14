@@ -13,6 +13,19 @@ import (
 	"github.com/nguyen/allycat/internal/tsp"
 )
 
+const (
+	// A single text search is one upstream call, normally well under a second,
+	// but there is no fallback if it fails — so give a slow network room
+	// rather than showing "no results" for what is really a timeout.
+	textSearchTimeout = 5 * time.Second
+
+	// Route optimization fans out one Google request per candidate finish, per
+	// vehicle — a ten-stop sheet with no fixed end is twenty concurrent calls.
+	// The local solver already answers instantly, so this budget only decides
+	// how long to wait before falling back to solver-only.
+	optimizeRouteTimeout = 8 * time.Second
+)
+
 type PlacesHandler struct {
 	api *places.PlacesApi
 }
@@ -37,7 +50,7 @@ func (h PlacesHandler) HandleTextSearch(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	googleMethodContext, cancel := context.WithTimeout(r.Context(), time.Second*2)
+	googleMethodContext, cancel := context.WithTimeout(r.Context(), textSearchTimeout)
 	defer cancel()
 	res, err := h.api.TextSearch(googleMethodContext, reqBody)
 
@@ -129,7 +142,7 @@ func (h PlacesHandler) HandleOptimizeRoute(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	googleMethodContext, cancel := context.WithTimeout(r.Context(), time.Second*3)
+	googleMethodContext, cancel := context.WithTimeout(r.Context(), optimizeRouteTimeout)
 	defer cancel()
 
 	type apiRes struct {
