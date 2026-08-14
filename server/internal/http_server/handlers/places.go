@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -16,16 +17,12 @@ type PlacesHandler struct {
 	api *places.PlacesApi
 }
 
-func NewPlacesHandler(placesApiKey string) (PlacesHandler, error) {
-	api, err := places.NewPlacesApi(placesApiKey)
-
-	if err != nil {
-		return PlacesHandler{}, err
-	}
-
+// NewPlacesHandler takes the constructed client rather than an API key so the
+// handler has no opinion on how that client is built or pointed.
+func NewPlacesHandler(api *places.PlacesApi) PlacesHandler {
 	return PlacesHandler{
 		api: api,
-	}, nil
+	}
 }
 
 func (h PlacesHandler) HandleTextSearch(w http.ResponseWriter, r *http.Request) {
@@ -39,8 +36,6 @@ func (h PlacesHandler) HandleTextSearch(w http.ResponseWriter, r *http.Request) 
 		WriteJSONResponse(w, NewResponse().WithMessage("Query must be at least 4 characters long"), http.StatusBadRequest)
 		return
 	}
-
-	fmt.Println("Received text search query:", reqBody.Query)
 
 	googleMethodContext, cancel := context.WithTimeout(r.Context(), time.Second*2)
 	defer cancel()
@@ -120,7 +115,7 @@ func (h PlacesHandler) HandleOptimizeRoute(w http.ResponseWriter, r *http.Reques
 		WithStart(b.Start.Id, *b.Start.Lat, *b.Start.Long)
 
 	if b.End != nil {
-		builder = builder.WithEnd(b.End.Id, *b.Start.Lat, *b.End.Long)
+		builder = builder.WithEnd(b.End.Id, *b.End.Lat, *b.End.Long)
 	}
 
 	for _, s := range b.Stops {
@@ -186,12 +181,12 @@ func (h PlacesHandler) HandleOptimizeRoute(w http.ResponseWriter, r *http.Reques
 	select {
 	case result := <-ch:
 		if err := result.Err; err != nil {
-			fmt.Printf("API failed, using TSP fallback: %v", result.Err)
+			log.Printf("route optimization failed, falling back to solver only: %v", err)
 		} else {
 			allRoutes = append(allRoutes, result.Result...)
 		}
 	case <-googleMethodContext.Done():
-		fmt.Println("API calc timed out 😔")
+		log.Println("route optimization timed out, falling back to solver only")
 	}
 
 	WriteJSONResponse(w, NewResponse().WithData(allRoutes), http.StatusOK)

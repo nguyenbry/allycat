@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -30,9 +31,12 @@ func (s *Server) RegisterRoutes(hs handlers.Handlers, pw string) {
 	s.initialized = true
 }
 
-func (s *Server) Start(addr string, allowedOrigin string) error {
+// Handler builds the outer router: CORS, logging, healthcheck, and the API
+// mounted under /api. Separate from Start so it can be exercised without
+// binding a port.
+func (s *Server) Handler(allowedOrigin string) (http.Handler, error) {
 	if !s.initialized {
-		return errors.New("server routes not initialized, call RegisterRoutes first")
+		return nil, errors.New("server routes not initialized, call RegisterRoutes first")
 	}
 
 	r := chi.NewRouter()
@@ -54,11 +58,28 @@ func (s *Server) Start(addr string, allowedOrigin string) error {
 
 	// healthcheck
 	r.Get("/status", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("ok"))
+		_, _ = w.Write([]byte("ok"))
 	})
 
 	r.Mount("/api", s.mux)
 
-	server := &http.Server{Addr: addr, Handler: r}
+	return r, nil
+}
+
+func (s *Server) Start(addr string, allowedOrigin string) error {
+	h, err := s.Handler(allowedOrigin)
+
+	if err != nil {
+		return err
+	}
+
+	server := &http.Server{
+		Addr:    addr,
+		Handler: h,
+		// Bound the header read so an idle or malicious connection cannot
+		// hold a goroutine open indefinitely.
+		ReadHeaderTimeout: 10 * time.Second,
+	}
+
 	return server.ListenAndServe()
 }

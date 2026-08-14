@@ -5,8 +5,19 @@ import React, { useEffect, useState } from "react";
 import { type DeckProps } from "@deck.gl/core";
 import { ScatterplotLayer } from "@deck.gl/layers";
 import { GoogleMapsOverlay } from "@deck.gl/google-maps";
+import { env } from "@/env";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { KeyRound } from "lucide-react";
 
 export default function MapPage() {
+  const apiKey = env.NEXT_PUBLIC_MAPS_API_KEY;
+
   const layers = [
     new ScatterplotLayer<{ position: [number, number] }>({
       id: "deckgl-circle",
@@ -17,8 +28,24 @@ export default function MapPage() {
     }),
   ];
 
+  if (!apiKey) {
+    return (
+      <Empty className="min-h-[100dvh]">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <KeyRound />
+          </EmptyMedia>
+          <EmptyTitle>Map key not configured</EmptyTitle>
+          <EmptyDescription>
+            Set NEXT_PUBLIC_MAPS_API_KEY to enable the map view.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    );
+  }
+
   return (
-    <APIProvider apiKey={"AIzaSyDovMk6kz3MxOp7yih1xZtlQ6KIsbR9Q6Q"}>
+    <APIProvider apiKey={apiKey}>
       <div className="relative h-screen w-screen p-2">
         <div className="absolute inset-4 overflow-clip rounded-xl">
           <Map

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -24,12 +25,16 @@ func (r response) WithData(data interface{}) response {
 	return r
 }
 
-func WriteJSONResponse(w http.ResponseWriter, r response, statusCode int) error {
+// WriteJSONResponse writes the shared {message, data} envelope.
+//
+// It deliberately returns nothing: the status line and headers are already on
+// the wire by the time encoding could fail, so no caller can recover. Log it
+// and move on rather than making every call site discard an error.
+func WriteJSONResponse(w http.ResponseWriter, r response, statusCode int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
-	return json.NewEncoder(w).Encode(r)
-}
 
-func writeServerError(w http.ResponseWriter) error {
-	return WriteJSONResponse(w, NewResponse().WithMessage("An internal server error has occurred"), http.StatusInternalServerError)
+	if err := json.NewEncoder(w).Encode(r); err != nil {
+		log.Printf("writing json response: %v", err)
+	}
 }
