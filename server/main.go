@@ -7,6 +7,7 @@ import (
 	"github.com/joho/godotenv"
 	server "github.com/nguyen/allycat/internal/http_server"
 	"github.com/nguyen/allycat/internal/http_server/handlers"
+	"github.com/nguyen/allycat/internal/places"
 )
 
 func main() {
@@ -53,14 +54,14 @@ func main() {
 
 	srv := server.NewServer()
 
-	placesHandler, err := handlers.NewPlacesHandler(key)
+	api, err := places.NewPlacesApi(key)
 
 	if err != nil {
 		panic(err)
 	}
 
 	handlers := handlers.Handlers{
-		Places: placesHandler,
+		Places: handlers.NewPlacesHandler(api),
 	}
 
 	srv.RegisterRoutes(handlers, pw)

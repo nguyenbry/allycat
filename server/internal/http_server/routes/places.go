@@ -56,19 +56,14 @@ func InitializePlacesRoutes(r *chi.Mux, hs handlers.Handlers, pwHash string) {
 	auth := func(next http.Handler) http.Handler {
 		f := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
+			// Never log the submitted value itself — this header is the
+			// app's only access control.
 			tryPw := r.Header.Get("x-app-password")
-
-			if tryPw == "" {
-				log.Println("they tried it")
-			} else {
-				log.Printf("tried pw: %v\n", tryPw)
-			}
 
 			pw, err := newPassword(tryPw)
 
 			if err != nil {
-				log.Println("they tried it 2")
-				log.Println(err.Error())
+				log.Printf("auth rejected: %v", err)
 				handlers.WriteJSONResponse(w, handlers.NewResponse().WithMessage("Forbidden"), http.StatusForbidden)
 				return
 			}
@@ -76,15 +71,13 @@ func InitializePlacesRoutes(r *chi.Mux, hs handlers.Handlers, pwHash string) {
 			valid, err := pw.ComparePasswordAndHash(pwHash)
 
 			if err != nil {
-				log.Println("cmp failed")
-				log.Println(err.Error())
+				log.Printf("auth comparison failed: %v", err)
 				handlers.WriteJSONResponse(w, handlers.NewResponse().WithMessage("Forbidden"), http.StatusForbidden)
 				return
 			}
 
 			if !valid {
-				fmt.Println("verify failed")
-
+				log.Println("auth rejected: password did not match")
 				handlers.WriteJSONResponse(w, handlers.NewResponse().WithMessage("Forbidden"), http.StatusForbidden)
 				return
 			}

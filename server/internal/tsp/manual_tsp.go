@@ -331,9 +331,15 @@ func (out tspRoute) convertDegreesToMeters() tspRoute {
 		out.end = &newEnd
 	}
 
+	// Write into a fresh slice: `out` is a copy of the route, but its stops
+	// still share a backing array with the caller's, so projecting in place
+	// would convert the caller's degrees to metres too — and converting an
+	// already-converted route silently produces garbage.
+	stops := make([]place, len(out.stops))
 	for i, x := range out.stops {
-		out.stops[i] = x.asRelativeCoords(lt, lng)
+		stops[i] = x.asRelativeCoords(lt, lng)
 	}
+	out.stops = stops
 
 	return out
 }
@@ -357,7 +363,12 @@ func (b tspRouteBuilder) WithEnd(id string, lat, long float64) tspRouteBuilder {
 }
 
 func (b tspRouteBuilder) AddStop(id string, lat, long float64) tspRouteBuilder {
-	b.r.stops = append(b.r.stops, place{id, long, lat})
+	// The builder is used by value, so two calls branching off the same
+	// receiver must not write into one shared array. Copy before appending.
+	stops := make([]place, len(b.r.stops), len(b.r.stops)+1)
+	copy(stops, b.r.stops)
+
+	b.r.stops = append(stops, place{id, long, lat})
 	return b
 }
 

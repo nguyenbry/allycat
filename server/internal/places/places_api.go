@@ -15,9 +15,19 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const (
+	defaultSearchTextURL    = "https://places.googleapis.com/v1/places:searchText"
+	defaultComputeRoutesURL = "https://routes.googleapis.com/directions/v2:computeRoutes"
+)
+
 type PlacesApi struct {
 	apiKey  string
 	httpCli *http.Client
+
+	// Endpoints are fields rather than constants so tests in this package can
+	// point them at an httptest server instead of calling Google for real.
+	searchTextURL    string
+	computeRoutesURL string
 }
 
 type longLat struct {
@@ -30,15 +40,40 @@ type TextSearchOptions struct {
 	LongLat *longLat `json:"locationBias,omitempty"`
 }
 
-func NewPlacesApi(apiKey string) (*PlacesApi, error) {
+// Option customises a PlacesApi. Endpoints and the HTTP client are adjustable
+// so callers — chiefly tests — can exercise the full request/response path
+// against a local server.
+type Option func(*PlacesApi)
+
+func WithSearchTextURL(url string) Option {
+	return func(p *PlacesApi) { p.searchTextURL = url }
+}
+
+func WithComputeRoutesURL(url string) Option {
+	return func(p *PlacesApi) { p.computeRoutesURL = url }
+}
+
+func WithHTTPClient(c *http.Client) Option {
+	return func(p *PlacesApi) { p.httpCli = c }
+}
+
+func NewPlacesApi(apiKey string, opts ...Option) (*PlacesApi, error) {
 	if apiKey == "" {
 		return nil, errors.New("api key is required for Google Maps")
 	}
 
-	return &PlacesApi{
-		apiKey:  apiKey,
-		httpCli: &http.Client{},
-	}, nil
+	p := &PlacesApi{
+		apiKey:           apiKey,
+		httpCli:          &http.Client{},
+		searchTextURL:    defaultSearchTextURL,
+		computeRoutesURL: defaultComputeRoutesURL,
+	}
+
+	for _, opt := range opts {
+		opt(p)
+	}
+
+	return p, nil
 }
 
 func (p *PlacesApi) buildRequest(ctx context.Context, method string, url string, body io.Reader) (*http.Request, error) {
@@ -57,7 +92,6 @@ func (p *PlacesApi) buildRequest(ctx context.Context, method string, url string,
 
 func (p *PlacesApi) TextSearch(ctx context.Context, opts TextSearchOptions) ([]place, error) {
 
-	fmt.Println(100)
 	type locationBias struct {
 		Circle struct {
 			Center struct {
@@ -67,8 +101,6 @@ func (p *PlacesApi) TextSearch(ctx context.Context, opts TextSearchOptions) ([]p
 			Radius float64 `json:"radius"`
 		} `json:"circle"`
 	}
-
-	fmt.Println(102)
 
 	getLocationBias := func(long float64, lat float64) *locationBias {
 		out := locationBias{}
@@ -92,13 +124,11 @@ func (p *PlacesApi) TextSearch(ctx context.Context, opts TextSearchOptions) ([]p
 
 	jsonData, err := json.Marshal(body)
 
-	fmt.Println("Request body:", string(jsonData))
-
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := p.buildRequest(ctx, "POST", "https://places.googleapis.com/v1/places:searchText", bytes.NewBuffer(jsonData))
+	req, err := p.buildRequest(ctx, "POST", p.searchTextURL, bytes.NewBuffer(jsonData))
 
 	if err != nil {
 		return nil, err
@@ -175,7 +205,12 @@ func (b optimizeRouteOptionsBuilder) WithStart(id string, lat, long float64) opt
 }
 
 func (b optimizeRouteOptionsBuilder) AddStop(id string, lat, long float64) optimizeRouteOptionsBuilder {
-	b.options.stops = append(b.options.stops, optimizeRouteLocation{id, long, lat})
+	// The builder is used by value, so two calls branching off the same
+	// receiver must not write into one shared array. Copy before appending.
+	stops := make([]optimizeRouteLocation, len(b.options.stops), len(b.options.stops)+1)
+	copy(stops, b.options.stops)
+
+	b.options.stops = append(stops, optimizeRouteLocation{id, long, lat})
 	return b
 }
 
@@ -315,14 +350,6 @@ type OptimalRoute struct {
 }
 
 func (p *PlacesApi) OptimizeRoute(ctx context.Context, opts optimizeRouteOptions) ([]OptimalRoute, error) {
-	fmt.Printf("Optimizing with start: %s\n", opts.start.id)
-	for i, x := range opts.stops {
-		fmt.Printf("Optimizing with %d. %s\n", i, x.id)
-	}
-	if opts.end != nil {
-		fmt.Printf("Optimizing with end: %s\n", opts.end.id)
-	}
-
 	nakedBodies, err := optimizePayloadFromOptions(opts)
 
 	if err != nil {
@@ -340,8 +367,6 @@ func (p *PlacesApi) OptimizeRoute(ctx context.Context, opts optimizeRouteOptions
 		carBodies = append(carBodies, carBody)
 	}
 
-	fmt.Println("len100", len(bikeBodies), len(carBodies))
-
 	var bikeMu sync.Mutex
 	var bikeResponses []OptimizeRouteResponse
 	bikeEg, _ := errgroup.WithContext(context.Background())
@@ -353,13 +378,11 @@ func (p *PlacesApi) OptimizeRoute(ctx context.Context, opts optimizeRouteOptions
 	doReq := func(body optimizePayload) ([]OptimizeRouteResponse, error) {
 		jsonData, err := json.Marshal(body)
 
-		// fmt.Println("Request body:", string(jsonData))
-
 		if err != nil {
 			return nil, fmt.Errorf("marshaling body: %w", err)
 		}
 
-		req, err := p.buildRequest(ctx, "POST", "https://routes.googleapis.com/directions/v2:computeRoutes", bytes.NewBuffer(jsonData))
+		req, err := p.buildRequest(ctx, "POST", p.computeRoutesURL, bytes.NewBuffer(jsonData))
 
 		if err != nil {
 			return nil, fmt.Errorf("building req: %w", err)
@@ -392,10 +415,6 @@ func (p *PlacesApi) OptimizeRoute(ctx context.Context, opts optimizeRouteOptions
 			return nil, fmt.Errorf("computeRoutes failed with status %d: %s", resp.StatusCode, googleAPIError(respBody))
 		}
 
-		fmt.Println()
-		fmt.Println("Response body:", string(respBody))
-		fmt.Println("yay1")
-
 		var respData struct {
 			Routes []struct {
 				Order   []int `json:"optimizedIntermediateWaypointIndex"`
@@ -414,10 +433,7 @@ func (p *PlacesApi) OptimizeRoute(ctx context.Context, opts optimizeRouteOptions
 		err = json.Unmarshal(respBody, &respData)
 
 		if err != nil {
-			fmt.Println("err 100")
 			return nil, fmt.Errorf("error unmarshaling response: %w", err)
-		} else {
-			fmt.Println("yay4")
 		}
 
 		var routes []OptimizeRouteResponse
@@ -454,8 +470,6 @@ func (p *PlacesApi) OptimizeRoute(ctx context.Context, opts optimizeRouteOptions
 		bikeEg.Go(func() error {
 			res, err := doReq(bikeBody)
 
-			fmt.Printf("case 100 %+v\n", res)
-
 			if err != nil {
 				return err
 			}
@@ -472,8 +486,6 @@ func (p *PlacesApi) OptimizeRoute(ctx context.Context, opts optimizeRouteOptions
 	for _, carBody := range carBodies {
 		carEg.Go(func() error {
 			res, err := doReq(carBody)
-
-			fmt.Printf("case 101 %+v\n", res)
 
 			if err != nil {
 				return err
@@ -621,6 +633,7 @@ func googleAPIError(body []byte) string {
 
 // https://www.reddit.com/r/golang/comments/fil647/this_3_year_old_thread_had_an_important_dicussion/
 func drainAndClose(rc io.ReadCloser) {
-	io.Copy(io.Discard, rc)
-	rc.Close()
+	// Draining lets the connection be reused; neither result is actionable.
+	_, _ = io.Copy(io.Discard, rc)
+	_ = rc.Close()
 }
