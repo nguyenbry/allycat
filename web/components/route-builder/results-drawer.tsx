@@ -217,7 +217,7 @@ function NewRouteButton() {
   );
 }
 
-function ResultsBody({
+export function ResultsBody({
   isWorking,
   error,
   savedRoute,
@@ -274,8 +274,12 @@ function ResultsBody({
   return (
     <div className="flex flex-col gap-3 pb-4">
       {sorted.map((route, i) => (
+        // The destination alone is not unique: the solver always finishes at
+        // one of the places Google also returns a route for, so keying on it
+        // collides and React keeps stale cards from the previous calculation.
+        // Method plus destination is unique — at most one of each per finish.
         <DestinationCard
-          key={route.destination}
+          key={`${route.method ?? "google"}:${route.destination}`}
           route={route}
           rank={i}
           savedRoute={savedRoute}
