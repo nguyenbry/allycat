@@ -21,8 +21,11 @@ import { usePassword } from "./use-password";
 export function PasswordGate({ children }: React.PropsWithChildren) {
   const { password, hydrated } = usePassword();
 
+  // Whether the app is unlocked depends on localStorage, which only exists on
+  // the client. Hold a branded splash rather than a blank screen — on a phone
+  // over mobile data this frame is visible.
   if (!hydrated) {
-    return <div className="min-h-[100dvh]" />;
+    return <Splash />;
   }
 
   if (password.trim() === "") {
@@ -30,6 +33,17 @@ export function PasswordGate({ children }: React.PropsWithChildren) {
   }
 
   return <>{children}</>;
+}
+
+function Splash() {
+  return (
+    <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-4">
+      <div className="bg-jade-3 text-jade-11 ring-jade-6 flex size-14 items-center justify-center rounded-2xl ring-1">
+        <LockKeyhole className="size-7" />
+      </div>
+      <h1 className="text-2xl font-bold tracking-tight">allycat</h1>
+    </div>
+  );
 }
 
 function UnlockScreen() {
