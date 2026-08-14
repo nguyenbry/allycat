@@ -522,7 +522,14 @@ function CalculatedRoutesArea({
           return (a.bike?.meters ?? Infinity) - (b.bike?.meters ?? Infinity);
         })
         .map((x) => {
-          return <RoutesForDestination key={x.destination} route={x} />;
+          // Destination alone collides: the solver finishes at a place Google
+          // also returns a route for, which leaves stale cards on rerender.
+          return (
+            <RoutesForDestination
+              key={`${x.method ?? "google"}:${x.destination}`}
+              route={x}
+            />
+          );
         })}
     </div>
   );
