@@ -1,10 +1,64 @@
-import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  cleanup,
+  render as rtlRender,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ResultsBody } from "./results-drawer";
 import { type SavedRoute } from "./atoms";
 import { type placeSchema } from "@/fetcher/fetchers";
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
+
+beforeEach(() => {
+  // Nothing in these tests may reach the network; each test opts in to a
+  // stubbed response for the leg enrichment.
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(() => Promise.reject(new Error("network disabled in tests")))
+  );
+});
+
+/** Responds to the leg-measuring call with `data`, or fails it when null. */
+function stubLegs(data: unknown) {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(() =>
+      data === null
+        ? Promise.resolve({
+            ok: false,
+            json: () => Promise.resolve({ message: "nope", data: null }),
+          })
+        : Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({ message: null, data }),
+          })
+    )
+  );
+}
+
+function render(ui: React.ReactElement) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+
+  const wrap = (node: React.ReactElement) => (
+    <QueryClientProvider client={client}>{node}</QueryClientProvider>
+  );
+
+  const utils = rtlRender(wrap(ui));
+
+  // rerender would otherwise drop the provider and take the query client away.
+  return {
+    ...utils,
+    rerender: (node: React.ReactElement) => utils.rerender(wrap(node)),
+  };
+}
 
 function place(id: string): placeSchema {
   return {
@@ -126,5 +180,77 @@ describe("results list", () => {
     // They share a destination, so a destination-only key would drop one.
     expect(screen.queryAllByText("Solver")).toHaveLength(1);
     expect(cardCount()).toBe(2);
+  });
+});
+
+describe("real distances enriching the solver estimate", () => {
+  const legs = {
+    legs: [
+      { fromId: "start", toId: "b", meters: 3000, displayDistance: "1.9 mi", displayDuration: "9 mins" },
+      { fromId: "b", toId: "c", meters: 4000, displayDistance: "2.5 mi", displayDuration: "12 mins" },
+      { fromId: "c", toId: "d", meters: 5000, displayDistance: "3.1 mi", displayDuration: "15 mins" },
+      { fromId: "d", toId: "a", meters: 2000, displayDistance: "1.2 mi", displayDuration: "6 mins" },
+    ],
+    meters: 14000,
+    displayDistance: "8.7 mi",
+    displayDuration: "42 mins",
+  };
+
+  const solverOnly: SavedRoute = {
+    routes: [
+      { destination: "a", method: "tsp", bike: leg(["b", "c", "d"], 8000) },
+    ],
+    places,
+    startId: "start",
+    endId: "a",
+    calculatedAt: 1_700_000_000_000,
+  };
+
+  it("labels the solver distance as an estimate", () => {
+    render(
+      <ResultsBody isWorking={false} error={undefined} savedRoute={solverOnly} />
+    );
+
+    expect(screen.getByText("Estimated")).toBeDefined();
+    expect(screen.getByText(/Straight-line distance between stops/)).toBeDefined();
+  });
+
+  it("shows the measured distance per hop once it arrives", async () => {
+    stubLegs(legs);
+
+    render(
+      <ResultsBody isWorking={false} error={undefined} savedRoute={solverOnly} />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/1\.9 mi/)).toBeDefined();
+    });
+
+    expect(screen.getByText(/2\.5 mi/)).toBeDefined();
+    expect(screen.getByText(/3\.1 mi/)).toBeDefined();
+    // The last stop has no next hop.
+    expect(screen.queryAllByText(/1\.2 mi/).length).toBeGreaterThan(0);
+  });
+
+  it("still shows the route when measuring fails", async () => {
+    stubLegs(null);
+
+    render(
+      <ResultsBody isWorking={false} error={undefined} savedRoute={solverOnly} />
+    );
+
+    // The production query retries once, so allow for that backoff.
+    await waitFor(
+      () => {
+        expect(
+          screen.getByText(/Couldn.t measure the real distances/)
+        ).toBeDefined();
+      },
+      { timeout: 5000 }
+    );
+
+    // The whole point: the rider keeps the route regardless.
+    expect(screen.getByText("Finish")).toBeDefined();
+    expect(screen.getByText("5.0 mi")).toBeDefined();
   });
 });

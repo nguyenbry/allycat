@@ -495,3 +495,131 @@ func TestHandleOptimizeRouteWorksWithoutDestination(t *testing.T) {
 	assert.Len(t, got[0].Bike.Order, 2)
 	assert.NotContains(t, got[0].Bike.Order, got[0].End)
 }
+
+// --- HandleRouteLegs ------------------------------------------------------
+
+func legsUpstream(meters []int64) http.HandlerFunc {
+	return func(w http.ResponseWriter, _ *http.Request) {
+		legs := make([]map[string]any, 0, len(meters))
+		var total int64
+
+		for _, m := range meters {
+			total += m
+			legs = append(legs, map[string]any{
+				"distanceMeters": m,
+				"localizedValues": map[string]any{
+					"distance": map[string]any{"text": "1.0 mi"},
+					"duration": map[string]any{"text": "5 mins"},
+				},
+			})
+		}
+
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"routes": []map[string]any{{
+				"distanceMeters": total,
+				"localizedValues": map[string]any{
+					"distance": map[string]any{"text": "3.0 mi"},
+					"duration": map[string]any{"text": "15 mins"},
+				},
+				"legs": legs,
+			}},
+		})
+	}
+}
+
+func TestHandleRouteLegsReturnsPerHopDistances(t *testing.T) {
+	t.Parallel()
+
+	h, closeFn := handlerWith(t, legsUpstream([]int64{100, 200, 300}))
+	defer closeFn()
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/legs", strings.NewReader(
+		`{"origin":"start","stops":["a","b"],"destination":"end"}`))
+
+	h.HandleRouteLegs(rec, req)
+
+	require.Equal(t, http.StatusOK, rec.Code)
+
+	_, data := decodeBody(t, rec)
+
+	var got struct {
+		Legs []struct {
+			FromId string `json:"fromId"`
+			ToId   string `json:"toId"`
+			Meters int64  `json:"meters"`
+		} `json:"legs"`
+		Meters int64 `json:"meters"`
+	}
+	require.NoError(t, json.Unmarshal(data, &got))
+
+	require.Len(t, got.Legs, 3)
+	assert.Equal(t, "start", got.Legs[0].FromId)
+	assert.Equal(t, "a", got.Legs[0].ToId)
+	assert.Equal(t, "b", got.Legs[2].FromId)
+	assert.Equal(t, "end", got.Legs[2].ToId)
+	assert.Equal(t, int64(600), got.Meters)
+}
+
+func TestHandleRouteLegsRejectsInvalidJSON(t *testing.T) {
+	t.Parallel()
+
+	h, closeFn := handlerWith(t, legsUpstream([]int64{1}))
+	defer closeFn()
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/legs", strings.NewReader(`{`))
+
+	h.HandleRouteLegs(rec, req)
+
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+	msg, _ := decodeBody(t, rec)
+	assert.Equal(t, "Invalid payload", msg)
+}
+
+func TestHandleRouteLegsRejectsMissingWaypoints(t *testing.T) {
+	t.Parallel()
+
+	called := false
+	h, closeFn := handlerWith(t, func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		legsUpstream([]int64{1})(w, r)
+	})
+	defer closeFn()
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/legs", strings.NewReader(
+		`{"stops":["a"],"destination":"end"}`))
+
+	h.HandleRouteLegs(rec, req)
+
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assert.False(t, called, "an incomplete route must not be billed upstream")
+
+	msg, _ := decodeBody(t, rec)
+	assert.Contains(t, msg, "origin is required")
+}
+
+func TestHandleRouteLegsReportsUpstreamFailure(t *testing.T) {
+	t.Parallel()
+
+	h, closeFn := handlerWith(t, func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusForbidden)
+		_, _ = w.Write([]byte(`{"error":{"message":"Routes API has not been used"}}`))
+	})
+	defer closeFn()
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/legs", strings.NewReader(
+		`{"origin":"start","stops":["a"],"destination":"end"}`))
+
+	h.HandleRouteLegs(rec, req)
+
+	// The client treats any failure the same way: skip the enrichment and keep
+	// showing the route the rider already has.
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+	msg, _ := decodeBody(t, rec)
+	assert.Contains(t, msg, "Routes API has not been used")
+}
