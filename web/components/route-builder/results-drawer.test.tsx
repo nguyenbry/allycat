@@ -232,6 +232,32 @@ describe("real distances enriching the solver estimate", () => {
     expect(screen.queryAllByText(/1\.2 mi/).length).toBeGreaterThan(0);
   });
 
+  it("shows the summed measured total in a badge beside the estimate", async () => {
+    stubLegs(legs);
+
+    render(
+      <ResultsBody isWorking={false} error={undefined} savedRoute={solverOnly} />
+    );
+
+    // 3000 + 4000 + 5000 + 2000 = 14000 m = 8.7 mi, summed from the same legs
+    // shown per row so the two can never disagree.
+    await waitFor(() => {
+      expect(screen.getByText("8.7 mi actual")).toBeDefined();
+    });
+
+    // The estimate stays visible right next to it.
+    expect(screen.getByText("Estimated")).toBeDefined();
+    expect(screen.getByText("5.0 mi")).toBeDefined();
+  });
+
+  it("shows no measured badge until the legs arrive", () => {
+    render(
+      <ResultsBody isWorking={false} error={undefined} savedRoute={solverOnly} />
+    );
+
+    expect(screen.queryByText(/mi actual/)).toBeNull();
+  });
+
   it("still shows the route when measuring fails", async () => {
     stubLegs(null);
 

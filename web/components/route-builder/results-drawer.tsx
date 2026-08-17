@@ -54,6 +54,7 @@ import {
   Flag,
   Navigation,
   RotateCcw,
+  Route as RouteIcon,
   Ruler,
   Sparkles,
   TriangleAlert,
@@ -472,6 +473,12 @@ function RouteLegs({
     (real.data?.legs ?? []).map((leg) => [leg.fromId, leg])
   );
 
+  // Summed from the same legs shown per row, so the total and the hops can
+  // never disagree with each other.
+  const measuredMiles = real.data
+    ? real.data.legs.reduce((sum, leg) => sum + leg.meters, 0) / 1609.344
+    : undefined;
+
   const ordered = [savedRoute.startId, ...route.order, destination];
 
   return (
@@ -488,22 +495,21 @@ function RouteLegs({
             Estimated
           </Badge>
         )}
+        {/* Sits next to the estimate so both numbers are readable in one
+            glance, which is the whole point mid-race. */}
+        {isEstimate && measuredMiles !== undefined && (
+          <Badge variant="jade" className="gap-1">
+            <RouteIcon className="size-3" />
+            {measuredMiles.toFixed(1)} mi actual
+          </Badge>
+        )}
       </div>
 
       {isEstimate && (
         <p className="text-muted-foreground text-xs leading-relaxed">
           Straight-line distance between stops, padded by 10% — it ignores
           roads, one-ways and river crossings, so the real ride is longer.
-          {real.data && (
-            <>
-              {" "}
-              Measured on roads this route is{" "}
-              <span className="text-foreground font-medium">
-                {real.data.displayDistance}
-              </span>
-              , about {real.data.displayDuration}.
-            </>
-          )}
+          {real.data && <> On roads it&apos;s about {real.data.displayDuration}.</>}
         </p>
       )}
 
